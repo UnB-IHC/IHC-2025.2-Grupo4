@@ -1,0 +1,20 @@
+{
+    "name": "Detector de acessibilidade",
+    "manifest_version": 3,
+    "version": "0.1.0",
+    "description": "Uma ferramenta para verificar se uma página possui acessbilidade.",
+
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+
+    "action": {
+        "default_popup": "index.html",
+        "default_title": "Detector de acessibilidade"
+    }
+}
