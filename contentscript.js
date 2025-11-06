@@ -1,1 +1,0 @@
-alert("Olá! O Content Script foi injetado e está rodando!");
