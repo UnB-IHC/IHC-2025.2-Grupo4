@@ -1,0 +1,64 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* popup inicial da extensão */
+.popup-container {
+    width: 280px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+    color: #111;
+    text-align: center;
+}
+
+p {
+    font-size: 0.9em;
+    margin-bottom: 16px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #3498db;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+/* Estilo para quando o botão estiver desabilitado */
+.btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.status {
+    margin-top: 12px;
+    font-size: 0.9em;
+    text-align: center;
+    color: #555;
+}
+
+/* Classe utilitária para esconder elementos */
+.hidden {
+    display: none;
+}

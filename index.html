@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Detector</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h3>Meu Detector</h3>
-    <button id="analyze-button">Analisar Página</button>
+    <main class="popup-container">
+        <h3>Detector de Acessibilidade</h3>
+        <p>Clique no botão para analisar a página atual.</p>
+        
+        <button id="analyze-button" class="btn">Analisar Página</button>
+
+        <div id="status-message" class="status hidden">
+            Analisando...
+        </div>
+    </main>
 
     <script src="script.js"></script>
 </body>

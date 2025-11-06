@@ -1,7 +1,11 @@
 const analyzeButton = document.getElementById('analyze-button');
+const statusMessage = document.getElementById('status-message');
 
-// Adiciona um "ouvinte" de clique
 analyzeButton.addEventListener('click', () => {
-    // Envia uma mensagem para o background.js
+    
+    analyzeButton.textContent = "Analisando...";
+    analyzeButton.disabled = true;
+    statusMessage.classList.remove('hidden');
+
     chrome.runtime.sendMessage({ type: "ANALYZE_PAGE" });
 });
