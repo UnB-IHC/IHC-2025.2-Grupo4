@@ -14,17 +14,37 @@
         }
     }
 
-    function checkForSingleTitle() {
+    function markupValidationWithApi() {
         const errors = [];
-        const titles = [...document.querySelectorAll("title")];
+        const htmlContent = document.documentElement.outerHTML;
 
-        if (titles.length === 0) {
-            errors.push(ErrorFactory.create("missing-title", "A página não possui um elemento <title>!"));
-        } else if (titles.length > 1) {
-            errors.push(ErrorFactory.create("multiple-titles", "A página tem múltiplas tags <title>!", titles));
-        } else if (titles[0].textContent.trim() === "") {
-            errors.push(ErrorFactory.create("empty-title", "O <title> da página está vazio!", titles[0]));
-        }
+        // Api de validação de semântica HTML
+        fetch("https://validator.w3.org/nu/?out=json", {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/html; charset=utf-8",
+                "Accept": "application/json",
+            },
+            body: htmlContent
+        })
+        .then(response => response.json())
+        .then(data => {
+
+            // Print para teste
+            // console.log(data);
+
+            // Processa os erros e avisos retornados pela API
+            data.messages.forEach(msg => {
+                if (msg.type === "error" || msg.type === "warning") {
+                    errors.push(
+                        ErrorFactory.create(
+                            "html-semantics-error",
+                            `${msg.message} (linha ${msg.lastLine})`,
+                        )
+                    );
+                }
+            });
+        })
 
         return errors;
     }
@@ -46,16 +66,43 @@
         return errors;
     }
 
-    function checkHeadingOrder() {
+    function checkForIframesWithoutTitle() {
+        const errors = [];
+        const iframes = [...document.querySelectorAll("iframe")];
+
+        for (let iframe of iframes) {
+            if (!iframe.hasAttribute("title") || iframe.getAttribute("title").trim() === "") {
+                errors.push(
+                    ErrorFactory.create(
+                        "iframe-missing-title",
+                        "O elemento <iframe> não possui o atributo 'title' definido!",
+                        iframe
+                    )
+                );
+            }
+        }
+
+        return errors;
+    }
+
+
+    function checkForHeadingsHierarchy() {
         const errors = [];
         const headings = [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")];
         const myMap = new Map([
             ["h1", 1], ["h2", 2], ["h3", 3], ["h4", 4], ["h5", 5], ["h6", 6],
         ]);
 
+        // Verifica se há a algum heading
         if (headings.length === 0) {
             errors.push(ErrorFactory.create("no-headings", "A página não possui headings!"));
             return errors;
+        }
+
+        // Verifica se há múltiplos H1
+        const h1s = headings.filter(h => h.tagName.toLowerCase() === 'h1');
+        if (h1s.length > 1) {
+            errors.push(ErrorFactory.create("multiple-h1", "A página possui múltiplos <h1>!", h1s));
         }
 
         const stack = [];
@@ -90,9 +137,10 @@
     window.runAccessibilityChecks = () => {
 
         const accessibilityChecks = {
-            checkForSingleTitle,
             checkForLanguageAttribute,
-            checkHeadingOrder,
+            checkForHeadingsHierarchy,
+            checkForIframesWithoutTitle,
+            markupValidationWithApi,
         };
 
         const allErrors = [];
@@ -102,7 +150,7 @@
             allErrors.push(...result);
         }
 
-        // 🧠 Log detalhado — clicável
+        // 🧠 Log detalhado (para testes)
         console.groupCollapsed(`♿️ ${allErrors.length} erros de acessibilidade encontrados`);
         for (const err of allErrors) {
             console.groupCollapsed(`%c${err.code}`, "color: red; font-weight: bold;");
@@ -112,14 +160,7 @@
         }
         console.groupEnd();
 
-        // 🧹 Versão limpa (sem os elementos DOM)
-        const simplifiedErrors = allErrors.map(e => ({
-            code: e.code,
-            message: e.message,
-            elementSummary: e.element ? e.element.outerHTML.slice(0, 100) + "..." : null
-        }));
-
-        chrome.runtime.sendMessage({ type: "DONE", allErrors: simplifiedErrors });
+        chrome.runtime.sendMessage({ type: "DONE", allErrors: allErrors });
         console.log("✅ Verificações concluídas e enviadas ao background.");
     };
 
