@@ -295,6 +295,49 @@
         return errors;
     }
 
+    function checkForLandmarks() {
+        const errors = [];
+        const landmarks = [...document.querySelectorAll('header, nav, main, aside, footer')];
+
+        if (landmarks.length == 0) {
+            errors.push(
+                ErrorFactory.create(
+                    "no-landmarks",
+                    "The page doesn't contain any landmark regions (e.g., <main>, <nav>, <header>, <footer>).",
+                    null,
+                    "warning"
+                )
+            );
+        }
+
+        let mainLandmarks = landmarks.filter(l => l.tagName.toLowerCase() === 'main');
+
+        if (!mainLandmarks.length) {
+            errors.push(
+                ErrorFactory.create(
+                    "no-main-landmark",
+                    "The page doesn't contain a <main> landmark region.",
+                    null,
+                    "error"
+                )
+            );
+        } else if (mainLandmarks.length > 1) {
+            errors.push(
+                ErrorFactory.create(
+                    "multiple-main-landmarks",
+                    "The page contains multiple <main> landmark regions.",
+                    null,
+                    "error"
+                )
+            );
+        }
+        return errors;
+    }
+
+    // ============================================================
+    // FUNÇÕES DE REALCE VISUAL
+    // ============================================================
+
     window.__a11yHighlightEnabled__ = true;
 
     function clearHighlights() {
@@ -374,6 +417,7 @@
             checkForFormFieldsWithoutLabel,
             checkForComponentsWithNonDescriptiveText,
             markupValidationWithApi,
+            checkForLandmarks,
         };
 
         const allErrors = [];
