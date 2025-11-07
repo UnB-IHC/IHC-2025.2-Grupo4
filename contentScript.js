@@ -9,15 +9,44 @@
     console.log("✅ Script de acessibilidade carregado com sucesso.");
 
     class ErrorFactory {
-        static create(code, message, element = null) {
-            return { code, message, element };
+        static create(code, message, element = null, severity = "error") {
+            return { code, message, element, severity };
         }
     }
 
-    function markupValidationWithApi() {
+    (function injectBadgeStyles() {
+        if (document.getElementById('a11y-badge-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'a11y-badge-styles';
+        style.textContent = `
+            .a11y-badge {
+                position: absolute;
+                display: inline-block;
+                transform: translate(0, -100%);
+                pointer-events: none;
+                font-family: Arial, sans-serif;
+                font-size: 11px;
+                line-height: 1;
+                padding: 3px 6px;
+                border-radius: 4px;
+                color: white;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+                z-index: 2147483647;
+                white-space: nowrap;
+            }
+        `;
+        document.head.appendChild(style);
+    })();
+
+    function markupValidationWithApi(timeoutMs = 6000) {
         return new Promise((resolve) => {
             const errors = [];
             const htmlContent = document.documentElement.outerHTML;
+
+            // AbortController para timeout
+            const controller = ('AbortController' in window) ? new AbortController() : null;
+            const signal = controller ? controller.signal : undefined;
+            if (controller) setTimeout(() => controller.abort(), timeoutMs);
 
             // API de validação de semântica HTML (W3C Nu Validator)
             fetch("https://validator.w3.org/nu/?out=json", {
@@ -41,10 +70,13 @@
                         const type = msg.type || 'info';
                         const code = (type === 'error') ? 'html-semantics-error' : 'html-semantics-warning';
                         const lineInfo = msg.lastLine ? ` (linha ${msg.lastLine})` : '';
+                        const severity = (type === 'error') ? 'error' : (type === 'warning' ? 'warning' : 'info');
                         errors.push(
                             ErrorFactory.create(
                                 code,
-                                `${msg.message}${lineInfo}`
+                                `${msg.message}${lineInfo}`,
+                                null,
+                                severity
                             )
                         );
                     });
@@ -54,7 +86,9 @@
                 errors.push(
                     ErrorFactory.create(
                         "markup-validation-failed",
-                        "Falha ao validar markup via W3C Validator: " + (err && err.message ? err.message : String(err))
+                        "Falha ao validar markup via W3C Validator: " + (err && err.message ? err.message : String(err)),
+                        null,
+                        "warning"
                     )
                 );
             })
@@ -73,7 +107,8 @@
                 ErrorFactory.create(
                     "missing-lang",
                     "O elemento <html> não possui o atributo 'lang' definido!",
-                    html
+                    html,
+                    "error"
                 )
             );
         }
@@ -83,7 +118,7 @@
 
     function checkForIframesWithoutTitle() {
         const errors = [];
-        const iframes = [...document.querySelectorAll("iframe")];
+        const iframes = Array.from(document.querySelectorAll("iframe"));
 
         for (let iframe of iframes) {
             if (!iframe.hasAttribute("title") || iframe.getAttribute("title").trim() === "") {
@@ -91,7 +126,8 @@
                     ErrorFactory.create(
                         "iframe-missing-title",
                         "O elemento <iframe> não possui o atributo 'title' definido!",
-                        iframe
+                        iframe,
+                        "warning"
                     )
                 );
             }
@@ -103,7 +139,7 @@
 
     function checkForHeadingsHierarchy() {
         const errors = [];
-        const headings = [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")];
+        const headings = Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"));
         const myMap = new Map([
             ["h1", 1], ["h2", 2], ["h3", 3], ["h4", 4], ["h5", 5], ["h6", 6],
         ]);
@@ -117,7 +153,8 @@
         // Verifica se há múltiplos H1
         const h1s = headings.filter(h => h.tagName.toLowerCase() === 'h1');
         if (h1s.length > 1) {
-            errors.push(ErrorFactory.create("multiple-h1", "A página possui múltiplos <h1>!", h1s));
+            errors.push(ErrorFactory.create("multiple-h1", "A página possui múltiplos <h1>!", null, "warning"));
+            h1s.forEach(h => errors.push(ErrorFactory.create("multiple-h1-instance", "H1 duplicado nesta posição", h, "warning")));
         }
 
         const stack = [];
@@ -130,7 +167,8 @@
                     ErrorFactory.create(
                         "invalid-heading-hierarchy",
                         `Heading pulou de <h${stack[stack.length - 1]}> para <h${currentLevel}>!`,
-                        heading
+                        heading,
+                        "warning"
                     )
                 );
             }
@@ -155,7 +193,8 @@
                     ErrorFactory.create(
                         "img-missing-alt",
                         "Imagem sem atributo 'alt' (atributo ausente).",
-                        img
+                        img,
+                        "error"
                     )
                 );
                 continue;
@@ -167,7 +206,8 @@
                     ErrorFactory.create(
                         "img-empty-alt",
                         "Imagem com 'alt' vazio — verifique se é intencionalmente decorativa.",
-                        img
+                        img,
+                        "warning"
                     )
                 );
             }
@@ -195,7 +235,8 @@
                     ErrorFactory.create(
                         "form-field-missing-label",
                         "Campo de formulário sem <label> associado nem aria-label/aria-labelledby.",
-                        field
+                        field,
+                        "error"
                     )
                 );
             }
@@ -226,7 +267,8 @@
                     ErrorFactory.create(
                         "link-empty-text",
                         "Link sem texto descritivo nem aria-label; verifique se tem nome acessível.",
-                        a
+                        a,
+                        "error"
                     )
                 );
                 continue;
@@ -237,7 +279,8 @@
                     ErrorFactory.create(
                         "link-nondescriptive-text",
                         `Link com texto não descritivo ("${text}") — prefira textos que descrevam o destino/ação.`,
-                        a
+                        a,
+                        "warning"
                     )
                 );
             }
@@ -245,11 +288,76 @@
         return errors;
     }
 
+    window.__a11yHighlightEnabled__ = true;
+
+    function clearHighlights() {
+        const badges = document.querySelectorAll('.a11y-badge');
+        badges.forEach(b => b.remove());
+
+        const marked = document.querySelectorAll('[data-a11y-marked="true"]');
+        marked.forEach(el => {
+            try {
+                el.removeAttribute('data-a11y-marked');
+                el.style.outline = '';
+                el.style.outlineOffset = '';
+            } catch (e) { /* ignora */ }
+        });
+    }
+
+    function highlightElement(elOrList, severity, code) {
+        if (!window.__a11yHighlightEnabled__) return;
+        if (!elOrList) return;
+
+        let nodes = null;
+        if (elOrList instanceof Element) {
+            nodes = [elOrList];
+        } else if (NodeList.prototype.isPrototypeOf(elOrList) || Array.isArray(elOrList)) {
+            nodes = Array.from(elOrList);
+        } else {
+            return;
+        }
+
+        const colorMap = {
+            error: 'rgba(255, 0, 0, 0.85)',
+            warning: 'rgba(255, 165, 0, 0.85)',
+            info: 'rgba(30, 144, 255, 0.85)'
+        };
+        const color = (severity && colorMap[severity]) ? colorMap[severity] : colorMap.error;
+
+        nodes.forEach(el => {
+            if (!(el instanceof Element)) return;
+
+            try {
+                if (el.dataset && el.dataset.a11yMarked) return;
+                if (el.dataset) el.dataset.a11yMarked = 'true';
+            } catch (e) {}
+
+            try { el.style.outline = `3px dashed ${color}`; el.style.outlineOffset = '2px'; } catch (e) {}
+
+            let rect = null;
+            try { rect = el.getBoundingClientRect(); } catch (e) { rect = null; }
+
+            const badge = document.createElement('span');
+            badge.className = 'a11y-badge';
+            badge.textContent = (code || 'A11Y').toUpperCase();
+            badge.setAttribute('role', 'note');
+            badge.style.background = color;
+
+            const top = (rect && rect.top !== undefined) ? (window.scrollY + Math.max(rect.top, 0)) : window.scrollY;
+            const left = (rect && rect.left !== undefined) ? (window.scrollX + Math.max(rect.left, 0)) : window.scrollX;
+            badge.style.top = `${top}px`;
+            badge.style.left = `${left}px`;
+
+            document.body.appendChild(badge);
+        });
+    }
+
     // ============================================================
     // EXECUÇÃO CENTRAL
     // ============================================================
 
     window.runAccessibilityChecks = async () => {
+        try { clearHighlights(); } catch (e) { /* ignora */ }
 
         const accessibilityChecks = {
             checkForLanguageAttribute,
@@ -284,7 +392,9 @@
                 allErrors.push(
                     ErrorFactory.create(
                         "check-runtime-error",
-                        `Erro ao executar a checagem "${checkName}": ${e && e.message ? e.message : String(e)}`
+                        `Erro ao executar a checagem "${checkName}": ${e && e.message ? e.message : String(e)}`,
+                        null,
+                        "error"
                     )
                 );
                 console.error(`Erro em checagem ${checkName}:`, e);
@@ -294,10 +404,28 @@
         // 🧠 Log detalhado (para testes)
         console.groupCollapsed(`♿️ ${allErrors.length} erros de acessibilidade encontrados`);
         for (const err of allErrors) {
-            console.groupCollapsed(`%c${err.code}`, "color: red; font-weight: bold;");
+            const sev = err && err.severity ? err.severity : 'error';
+            const color = sev === "warning" ? "orange" : (sev === "info" ? "dodgerblue" : "red");
+
+            for (const err of allErrors) {
+                const sev = err && err.severity ? err.severity : 'error';
+                const color = sev === "warning" ? "orange" : (sev === "info" ? "dodgerblue" : "red");
+
+                console.groupCollapsed(
+                    `%c[${sev.toUpperCase()}] ${err.code}`,
+                    `color:${color}; font-weight:bold;`
+                );
+                console.log(err.message);
+                if (err.element) console.log("Elemento problemático:", err.element);
+                console.groupEnd();
+
+                try { highlightElement(err.element, sev, err.code); } catch (e) { /* ignora */ }
+            }
             console.log(err.message);
-            console.log("Elemento problemático:", err.element);
+            if (err.element) console.log("Elemento problemático:", err.element);
             console.groupEnd();
+
+            try { highlightElement(err.element, err.severity || 'error', err.code); } catch(e) { /* ignora */ }
         }
         console.groupEnd();
 
