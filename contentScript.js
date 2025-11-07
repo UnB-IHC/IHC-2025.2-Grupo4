@@ -1,12 +1,12 @@
 (() => {
     if (window.__accessibilityCheckerLoaded__) {
-        console.log("♻️ Reexecutando verificações de acessibilidade...");
+        console.log("♻️ Reexecuting accessibility checks...");
         window.runAccessibilityChecks();
         return;
     }
 
     window.__accessibilityCheckerLoaded__ = true;
-    console.log("✅ Script de acessibilidade carregado com sucesso.");
+    console.log("✅ Acessibility checker script loaded.");
 
     class ErrorFactory {
         static create(code, message, element = null, severity = "error") {
@@ -59,7 +59,7 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Validador retornou status ' + response.status);
+                    throw new Error('Checker returned ' + response.status);
                 }
                 return response.json();
             })
@@ -86,7 +86,7 @@
                 errors.push(
                     ErrorFactory.create(
                         "markup-validation-failed",
-                        "Falha ao validar markup via W3C Validator: " + (err && err.message ? err.message : String(err)),
+                        "W3C Validator Fail: " + (err && err.message ? err.message : String(err)),
                         null,
                         "warning"
                     )
@@ -106,7 +106,7 @@
             errors.push(
                 ErrorFactory.create(
                     "missing-lang",
-                    "O elemento <html> não possui o atributo 'lang' definido!",
+                    "The <html> tag doesn't have a 'lang' attribute defined.",
                     html,
                     "error"
                 )
@@ -125,7 +125,7 @@
                 errors.push(
                     ErrorFactory.create(
                         "iframe-missing-title",
-                        "O elemento <iframe> não possui o atributo 'title' definido!",
+                        "The <iframe> element is missing a 'title' attribute or it is empty.",
                         iframe,
                         "warning"
                     )
@@ -146,15 +146,15 @@
 
         // Verifica se há a algum heading
         if (headings.length === 0) {
-            errors.push(ErrorFactory.create("no-headings", "A página não possui headings!"));
+            errors.push(ErrorFactory.create("no-headings", "The page doesn't have headings."));
             return errors;
         }
 
         // Verifica se há múltiplos H1
         const h1s = headings.filter(h => h.tagName.toLowerCase() === 'h1');
         if (h1s.length > 1) {
-            errors.push(ErrorFactory.create("multiple-h1", "A página possui múltiplos <h1>!", null, "warning"));
-            h1s.forEach(h => errors.push(ErrorFactory.create("multiple-h1-instance", "H1 duplicado nesta posição", h, "warning")));
+            errors.push(ErrorFactory.create("multiple-h1", "The page contains multiple <h1> tags.", null, "warning"));
+            h1s.forEach(h => errors.push(ErrorFactory.create("multiple-h1-instance", "<h1> duplicated at current position.", h, "warning")));
         }
 
         const stack = [];
@@ -166,7 +166,7 @@
                 errors.push(
                     ErrorFactory.create(
                         "invalid-heading-hierarchy",
-                        `Heading pulou de <h${stack[stack.length - 1]}> para <h${currentLevel}>!`,
+                        `Heading jumped from <h${stack[stack.length - 1]}> to <h${currentLevel}>!`,
                         heading,
                         "warning"
                     )
@@ -192,7 +192,7 @@
                 errors.push(
                     ErrorFactory.create(
                         "img-missing-alt",
-                        "Imagem sem atributo 'alt' (atributo ausente).",
+                        "Image without 'alt' attribute.",
                         img,
                         "error"
                     )
@@ -205,7 +205,7 @@
                 errors.push(
                     ErrorFactory.create(
                         "img-empty-alt",
-                        "Imagem com 'alt' vazio — verifique se é intencionalmente decorativa.",
+                        "Image with empty 'alt' attribute.",
                         img,
                         "warning"
                     )
@@ -234,7 +234,7 @@
                 errors.push(
                     ErrorFactory.create(
                         "form-field-missing-label",
-                        "Campo de formulário sem <label> associado nem aria-label/aria-labelledby.",
+                        "Form field without associated label or aria-label.",
                         field,
                         "error"
                     )
@@ -244,29 +244,35 @@
         return errors;
     }
 
-    function checkForLinksWithNonDescriptiveText() {
+    function checkForComponentsWithNonDescriptiveText() {
         const errors = [];
+
         const genericTexts = new Set([
-            '', 'clique aqui', 'saiba mais', 'aqui', 'leia mais', 'mais', 'ver mais', 'link', 'press here', 'click here'
+        "clique aqui", "saiba mais", "leia mais", "veja mais", "ver mais",
+        "mais", "aqui", "link", "detalhes", "informações",
+        "continue", "confira", "acesse", "explorar", "descubra",
+        "ver tudo", "ver detalhes", "mais informações",
+        "ler mais", "saiba", "ver", "visite",
+        "click here", "read more", "learn more", "see more",
+        "more info", "more information", "view more"
         ]);
 
-        const anchors = Array.from(document.querySelectorAll('a'));
+        const anchors = [...document.querySelectorAll('a, button')];
 
         for (let a of anchors) {
-            const href = a.getAttribute('href');
-            if (!href || href.trim() === '' || /^javascript:/i.test(href.trim())) {
-                // Se for ancoragem intra-página como "#id", ainda verificamos o texto — mas ignore href undefined
-                // continue; // (não usamos continue aqui para também detectar anchors vazias com href ausente)
-            }
 
-            const text = (a.textContent || '').trim().toLowerCase();
-            const ariaLabel = (a.getAttribute('aria-label') || '').trim();
+            if (a.hasChildNodes) continue;
 
-            if (text === '' && ariaLabel === '') {
+            const text = a.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+            const ariaLabel = (a.getAttribute('aria-label') || '').trim().toLowerCase();
+
+            const effectiveText = text || ariaLabel;
+
+            if (effectiveText === '') {
                 errors.push(
                     ErrorFactory.create(
-                        "link-empty-text",
-                        "Link sem texto descritivo nem aria-label; verifique se tem nome acessível.",
+                        "component-empty-text",
+                        "Component with empty text.",
                         a,
                         "error"
                     )
@@ -274,11 +280,12 @@
                 continue;
             }
 
-            if (genericTexts.has(text)) {
+            const wordCount = effectiveText.split(/\s+/).length;
+            if (genericTexts.has(effectiveText) || wordCount < 2) {
                 errors.push(
                     ErrorFactory.create(
-                        "link-nondescriptive-text",
-                        `Link com texto não descritivo ("${text}") — prefira textos que descrevam o destino/ação.`,
+                        "component-nondescriptive-text",
+                        `Component with non-descriptive text: “${effectiveText}”.`,
                         a,
                         "warning"
                     )
@@ -365,7 +372,7 @@
             checkForIframesWithoutTitle,
             checkForImagesWithoutAlt,
             checkForFormFieldsWithoutLabel,
-            checkForLinksWithNonDescriptiveText,
+            checkForComponentsWithNonDescriptiveText,
             markupValidationWithApi,
         };
 
@@ -392,17 +399,17 @@
                 allErrors.push(
                     ErrorFactory.create(
                         "check-runtime-error",
-                        `Erro ao executar a checagem "${checkName}": ${e && e.message ? e.message : String(e)}`,
+                        `Error when executing check "${checkName}": ${e && e.message ? e.message : String(e)}`,
                         null,
                         "error"
                     )
                 );
-                console.error(`Erro em checagem ${checkName}:`, e);
+                console.error(`Checking error "${checkName}":`, e);
             }
         }
 
         // 🧠 Log detalhado (para testes)
-        console.groupCollapsed(`♿️ ${allErrors.length} erros de acessibilidade encontrados`);
+        console.groupCollapsed(`♿️ ${allErrors.length} acessibility issues found.`);
         for (const err of allErrors) {
             const sev = err && err.severity ? err.severity : 'error';
             const color = sev === "warning" ? "orange" : (sev === "info" ? "dodgerblue" : "red");
@@ -416,13 +423,13 @@
                     `color:${color}; font-weight:bold;`
                 );
                 console.log(err.message);
-                if (err.element) console.log("Elemento problemático:", err.element);
+                if (err.element) console.log("Problematic element:", err.element);
                 console.groupEnd();
 
                 try { highlightElement(err.element, sev, err.code); } catch (e) { /* ignora */ }
             }
             console.log(err.message);
-            if (err.element) console.log("Elemento problemático:", err.element);
+            if (err.element) console.log("Problematic element:", err.element);
             console.groupEnd();
 
             try { highlightElement(err.element, err.severity || 'error', err.code); } catch(e) { /* ignora */ }
@@ -430,7 +437,7 @@
         console.groupEnd();
 
         chrome.runtime.sendMessage({ type: "DONE", allErrors: allErrors });
-        console.log("✅ Verificações concluídas e enviadas ao background.");
+        console.log("✅ Checks completed.");
     };
 
     window.runAccessibilityChecks();
