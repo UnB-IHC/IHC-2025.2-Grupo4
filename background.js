@@ -1,11 +1,14 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "ANALYZE_PAGE") {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+
             const activeTab = tabs[0];
+
+            // Primeiro injeta colorChecker.js
             chrome.scripting.executeScript({
                 target: { tabId: activeTab.id },
                 files: ["contentScript.js"]
-            });
+            })
         });
     }
 

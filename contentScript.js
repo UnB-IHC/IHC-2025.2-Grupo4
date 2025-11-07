@@ -245,6 +245,70 @@
         return errors;
     }
 
+    async function loadAxeIfNeeded() {
+        if (window.axe) return Promise.resolve();
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = chrome.runtime.getURL('lib/axe.min.js');
+            script.onload = () => {
+                console.log("✅ axe-core carregado localmente");
+                resolve();
+            };
+            script.onerror = () => reject(new Error("Falha ao carregar axe-core local"));
+            document.documentElement.appendChild(script);
+        });
+    }
+
+    async function checkContrastWithAxe() {
+    const errors = [];
+    await loadAxeIfNeeded();
+
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = chrome.runtime.getURL('lib/axe-runner.js');
+        (document.head || document.documentElement).appendChild(script);
+
+        window.addEventListener('message', function handler(event) {
+        if (event.data.type === 'AXE_RESULTS') {
+            window.removeEventListener('message', handler);
+
+            if (event.data.error) {
+                errors.push({
+                    code: 'axe-error',
+                    message: 'Falha ao executar axe-core: ' + event.data.error
+                });
+
+                resolve(errors);
+
+                return;
+            }
+
+            const results = event.data.results;
+                if (results && results.violations) {
+                results.violations.forEach(v => {
+                    v.nodes.forEach(node => {
+                    errors.push({
+                        code: v.id,
+                        message: v.help,
+                        description: v.description,
+                        impact: v.impact,
+                        helpUrl: v.helpUrl,
+                        element: node.target?.[0] || '(elemento não identificado)',
+                        html: node.html || '(sem HTML)',
+                        details: node.failureSummary || ''
+                    });
+                });
+            });
+            }
+
+            resolve(errors);
+        }
+        });
+    });
+    }
+
+
     // ============================================================
     // EXECUÇÃO CENTRAL
     // ============================================================
@@ -259,6 +323,7 @@
             checkForFormFieldsWithoutLabel,
             checkForLinksWithNonDescriptiveText,
             markupValidationWithApi,
+            checkContrastWithAxe,
         };
 
         const allErrors = [];
