@@ -1,0 +1,1173 @@
+
+<!doctype html>
+<html lang="pt" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/UnB-IHC/IHC-2025.2-Grupo4/design/design.html">
+      
+      
+        <link rel="prev" href="../devWeb/non_text_content.html">
+      
+      
+        <link rel="next" href="../geracaoConteudo/conteudo.html">
+      
+      
+      <link rel="icon" href="../imagens/logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
+    
+    
+      
+        <title>Design - AccessScan</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="light-blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#design" class="md-skip">
+          Ir para o conteúdo
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabeçalho">
+    <a href="../index.html" title="AccessScan" class="md-header__button md-logo" aria-label="AccessScan" data-md-component="logo">
+      
+  <img src="../imagens/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AccessScan
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="light-blue" data-md-color-accent="blue"  aria-label="Modo escuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Modo escuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="light-blue" data-md-color-accent="blue"  aria-label="Modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Buscar" placeholder="Buscar" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Pesquisar">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpar" aria-label="Limpar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando a pesquisa
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Abas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Início - AccessScan
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../devWeb/non_text_content.html" class="md-tabs__link">
+          
+  
+  
+  Desenvolvimento Web
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="design.html" class="md-tabs__link">
+          
+  
+  
+  Design
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../geracaoConteudo/conteudo.html" class="md-tabs__link">
+          
+  
+  
+  Geração de Conteúdo
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../gestaoProjeto/gestaoProjeto.html" class="md-tabs__link">
+          
+  
+  
+  Gestão de Projetos
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tools/ferramentas.html" class="md-tabs__link">
+          
+  
+  
+  Ferramentas
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegação" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="AccessScan" class="md-nav__button md-logo" aria-label="AccessScan" data-md-component="logo">
+      
+  <img src="../imagens/logo.png" alt="logo">
+
+    </a>
+    AccessScan
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Início - AccessScan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Desenvolvimento Web
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Desenvolvimento Web
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../devWeb/non_text_content.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Desenvolvimento
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Design
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Design
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="design.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#progresso-wcag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Progresso WCAG
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aparencia" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aparência
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#textos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Textos
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#animacao" class="md-nav__link">
+    <span class="md-ellipsis">
+      Animação
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contraste-de-cores" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contraste de Cores
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#referencias-bibliograficas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Referências Bibliograficas
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bibliografia" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bibliografia
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Geração de Conteúdo
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Geração de Conteúdo
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geracaoConteudo/conteudo.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conteúdo
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Gestão de Projetos
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Gestão de Projetos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gestaoProjeto/gestaoProjeto.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Gestão de Projetos
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Ferramentas
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Ferramentas
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/ferramentas.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ferramentas de Acessibilidade
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#progresso-wcag" class="md-nav__link">
+    <span class="md-ellipsis">
+      Progresso WCAG
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aparencia" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aparência
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#textos" class="md-nav__link">
+    <span class="md-ellipsis">
+      Textos
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#animacao" class="md-nav__link">
+    <span class="md-ellipsis">
+      Animação
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contraste-de-cores" class="md-nav__link">
+    <span class="md-ellipsis">
+      Contraste de Cores
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#referencias-bibliograficas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Referências Bibliograficas
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bibliografia" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bibliografia
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+
+
+
+
+<h1 id="design">Design</h1>
+<p>Esta seção apresenta boas práticas e critérios fundamentais para garantir a acessibilidade no design visual e de interface de produtos digitais. Ela se destina a profissionais de UX, UI, designers gráficos e equipes responsáveis pela criação visual de sites, sistemas e aplicativos.</p>
+<div class="admonition info">
+<p class="admonition-title">Por que é importante?</p>
+<p>Decisões de design impactam diretamente a capacidade das pessoas de perceber, compreender e interagir com os conteúdos. Aspectos como contraste, cores, tipografia, espaçamento, responsividade, organização da informação e controle de animações são essenciais para atender a uma ampla diversidade de usuários, incluindo pessoas com deficiências visuais, cognitivas, motoras e neuro divergentes.</p>
+</div>
+<h2 id="progresso-wcag">Progresso WCAG</h2>
+<div class="progress-sidebar" style="display: flex; flex-direction: row;">
+    <div>
+        <h3>Nível A</h3>
+        <canvas id="graficoA" width="200" height="200" style="width: 200px; height: 200px;"></canvas>
+    </div>
+    <div>
+        <h3>Nível AA</h3>
+        <canvas id="graficoAA" width="200" height="200" style="width: 200px; height: 200px;"></canvas>
+    </div>
+    <div>
+        <h3>Nível AAA</h3>
+        <canvas id="graficoAAA" width="200" height="200" style="width: 200px; height: 200px;"></canvas>
+    </div>
+</div>
+
+<h2 id="aparencia">Aparência</h2>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="A">
+  <b>Além das cores, há recursos auxiliares como meio de transmitir informação (A).</b> <a href="#1">[1]</a> <a href="#16">[16]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="A">
+  Adicionar informações (como gráficos e diagramas) que não dependam exclusivamente da cor (A). <a href="#1">[1]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+  Garantir que dicas visuais significativas atinjam 3:1 em relação ao fundo (AA).<a href="#1">[1]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+  Oferece uma opção de alto contraste das páginas web (AA). <a href="#2">[2]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+  <b>O site pode ser rotacionado  para qualquer orientação (AA).</b> <a href="#15">[NBR 5.10.3]</a> <a href="#3">[3]</a> 
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+  <b>O conteúdo permanece funcional e sem perda de informação quando visualizado em uma área de 320px de largura ou 256px de altura, a menos que um leiaute bidimensional seja essencial (AA).</b> <a href="#15">[NBR 5.10.4]</a> <a href="#4">[4]</a> 
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+  <b>A interface é responsiva e adaptável a diferentes tamanhos de tela (AA).</b> <a href="#15">[NBR 5.10.4]</a> <a href="#4">[4]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    Áreas clicáveis com no mínimo 44px (pixels) de altura e 44px de largura (AAA). <a href="#15">[NBR 5.8.6]</a>  <a href="#5">[5]</a> <a href="#6">[6]</a> 
+</label></p>
+<h2 id="textos">Textos</h2>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    <b>Todos os blocos de texto têm espaçamento entre as linhas (entrelinhas) de pelo menos 1,5 vez o tamanho da fonte (AAA).</b> <a href="#15">[NBR 5.1.12]</a> <a href="#7">[7]</a> <a href="#8">[8]</a> 
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    <b>Todos os parágrafos têm espaçamento entre si de pelo menos 2 vezes o tamanho da fonte (AAA).</b> <a href="#15">[NBR 5.12.2]</a> <a href="#7">[7]</a> <a href="#8">[8]</a> 
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+    <b>Todos os blocos de texto têm espaçamento entre as palavras de pelo menos 0,16 vez o tamanho da fonte (AA).</b> <a href="#15">[NBR 5.12.4]</a>  <a href="#8">[8]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    <b>Não há perda de conteúdo ou funcionalidade quando o texto é redimensionado sem o uso de recursos de tecnologia assistiva em até 200 % (AAA).</b> <a href="#15">[NBR 5.12.7]</a> <a href="#7">[7]</a> <a href="#9">[9]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    <b>Textos estão alinhados conforme o sentido de leitura, a menos que o alinhamento seja essencial para a compreensão (AAA).</b> <a href="#15">[NBR 5.12.5]</a> <a href="#7">[7]</a> <a href="#16">[16]</a> 
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    <b>Blocos de texto têm no máximo 80 caracteres por linha (AAA).</b> <a href="#15">[NBR 5.12.6]</a> <a href="#4">[4]</a> <a href="#16">[16]</a> 
+</label></p>
+<h2 id="animacao">Animação</h2>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="A">
+    <b>Todos os movimentos de tela piscam abaixo de 3 vezes por segundo (A).</b> <a href="#10">[10]</a> <a href="#16">[16]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="A">
+    Permitir que os usuários controlem as alterações de conteúdo que ocorrem em paralelo com outro conteúdo (A). <a href="#11">[11]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    Toda a animação deve obedecer à prefers-reduced-motion consulta de mídia (AAA). <a href="#12">[12]</a>
+</label></p>
+<h2 id="contraste-de-cores">Contraste de Cores</h2>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+    Verificar o contraste de todos os ícones (AA). <a href="#13">[13]</a>
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+    <b>O texto (incluindo imagens de texto) possui contraste suficiente com o fundo de 4,5:1 para textos normais (AA).</b> <a href="#15">[NBR 5.11.3]</a> <a href="#2">[2]</a> 
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AA">
+    <b>O texto (incluindo imagens de texto) possui contraste suficiente com o fundo de 3:1 para textos grandes (AA).</b> <a href="#15">[NBR 5.11.3]</a> <a href="#2">[2]</a> 
+</label></p>
+<p><label class="criterio">
+  <input type="checkbox" class="criterio" data-level="AAA">
+    <b>O indicador de foco visível dos elementos focáveis tem relação de contraste de pelo menos 3:1 com o fundo e entre os estados em foco e sem foco (AAA).</b> <a href="#15">[NBR 5.11.6]</a> <a href="#14">[14]</a></p>
+<p></label></p>
+<h2 id="referencias-bibliograficas">Referências Bibliograficas</h2>
+<blockquote>
+<p><a id="1" href="">1.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.4.1 Uso de Cores (Nível A). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#use-of-color">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#use-of-color</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="2" href="">2.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.4.3 Contraste (Mínimo) (Nível AA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#contrast-minimum">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#contrast-minimum</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="3" href="">3.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.3.4 Orientação (Nível AA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#orientation">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#orientation</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="4" href="">4.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.4.10 Realinhar (Nível AA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#reflow">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#reflow</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="5" href="">5.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 2.5.5 Tamanho do Alvo (Melhorado) (Nível AAA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#target-size-enhanced">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#target-size-enhanced</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="6" href="">6.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 2.5.8 Tamanho do Alvo (Mínimo) (Nível AA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#target-size-minimum">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#target-size-minimum</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="7" href="">7.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.4.8 Apresentação Visual (Nível AAA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#visual-presentation">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#visual-presentation</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="8" href="">8.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.4.12 Espaçamento de Texto (Nível AA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#text-spacing">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#text-spacing</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="9" href="">9.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.4.4 Redimensionar Texto (Nível AA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#resize-text">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#resize-text</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="10" href="">10.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 2.3.1 Três Flashes ou Abaixo do Limite (Nível A). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#three-flashes-or-below-threshold">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#three-flashes-or-below-threshold</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="11" href="">11.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 2.2.2 Colocar em Pausa, Parar, Ocultar (Nível A). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#pause-stop-hide">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#pause-stop-hide</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="12" href="">12.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 2.2.3 Sem limite de tempo (Nível AAA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#no-timing">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#no-timing</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="13" href="">13.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 1.4.11 Contraste Não textual (Nível AA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#non-text-contrast">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#non-text-contrast</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="14" href="">14.</a> Diretrizes de Acessibilidade para Conteúdo Web (WCAG) 2.2. CS 2.4.13 Aparência do Foco (Nível AAA). Disponível em: <a href="https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#focus-appearance">https://www.w3c.br/traducoes/wcag/wcag22-pt-BR/#focus-appearance</a>. Acesso em: 23 Jun. 2025.</p>
+<p><a id="15" href="">15.</a> <strong>ABNT NBR 17225</strong>:2025, Acessibilidade em conteúdo e aplicações web – Requisitos. Disponível em: <a href="https://mwpt.com.br/wp-content/uploads/2025/04/ABNT-NBR-17225-Acessibilidade-Digital.pdf">https://mwpt.com.br/wp-content/uploads/2025/04/ABNT-NBR-17225-Acessibilidade-Digital.pdf</a> Acesso em: 23 Jun. 2025</p>
+<p><a id="16" href="">16.</a> DINIZ, V.; FERRAZ, R.; NASCIMENTO, C. M.; CREDIDIO, R. <strong>Guia de Boas Práticas para Acessibilidade Digital</strong>. Programa de Cooperação entre Reino Unido e Brasil em Acesso Digital, 2023. Disponível em: <a href="https://www.gov.br/governodigital/pt-br/acessibilidade-e-usuario/acessibilidade-digital/guiaboaspraaticasparaacessibilidadedigital.pdf">https://www.gov.br/governodigital/pt-br/acessibilidade-e-usuario/acessibilidade-digital/guiaboaspraaticasparaacessibilidadedigital.pdf</a>. Acesso em: 9 Mai. 2025.</p>
+</blockquote>
+<h2 id="bibliografia">Bibliografia</h2>
+<blockquote>
+<p></a> DINIZ, V.; FERRAZ, R.; NASCIMENTO, C. M.; CREDIDIO, R. Guia de Boas Práticas para Acessibilidade Digital. Programa de Cooperação entre Reino Unido e Brasil em Acesso Digital, 2023. Disponível em: <a href="https://www.gov.br/governodigital/pt-br/acessibilidade-e-usuario/acessibilidade-digital/guiaboaspraaticasparaacessibilidadedigital.pdf">https://www.gov.br/governodigital/pt-br/acessibilidade-e-usuario/acessibilidade-digital/guiaboaspraaticasparaacessibilidadedigital.pdf</a>. Acesso em: 9 Mai. 2025.</p>
+</blockquote>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Voltar ao topo
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.expand", "search.suggest", "search.highlight", {"navigation.instant": false}], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+      
+        <script src="../js/progresso.js"></script>
+      
+    
+  </body>
+</html>
