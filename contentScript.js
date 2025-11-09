@@ -455,19 +455,85 @@ function checkForComponentsWithNonDescriptiveText() {
     // ============================================================
 
     window.__a11yHighlightEnabled__ = true;
+    window.__a11yBadgeMap__ = window.__a11yBadgeMap__ || new Map();
+    window.__a11yResizeObserver__ = window.__a11yResizeObserver__ || (window.ResizeObserver ? new ResizeObserver(() => scheduleBadgeUpdate()) : null);
+    window.__a11yUpdateRaf__ = null;
 
     function clearHighlights() {
-        const badges = document.querySelectorAll('.a11y-badge');
-        badges.forEach(b => b.remove());
+        try {
+            for (const [uid, { badge }] of window.__a11yBadgeMap__) {
+                try { badge.remove(); } catch(e) {}
+            }
+            const marked = document.querySelectorAll('[data-a11y-marked="true"]');
+            marked.forEach(el => {
+                try {
+                    el.removeAttribute('data-a11y-marked');
+                    el.style.outline = '';
+                    el.style.outlineOffset = '';
+                } catch (e) { /* ignora */ }
+            });
 
-        const marked = document.querySelectorAll('[data-a11y-marked="true"]');
-        marked.forEach(el => {
+            if (window.__a11yResizeObserver__) {
+                try { window.__a11yResizeObserver__.disconnect(); } catch(e) {}
+            }
+
+            window.__a11yBadgeMap__.clear();
+
             try {
-                el.removeAttribute('data-a11y-marked');
-                el.style.outline = '';
-                el.style.outlineOffset = '';
-            } catch (e) { /* ignora */ }
+                window.removeEventListener('scroll', scheduleBadgeUpdate, { passive: true });
+                window.removeEventListener('resize', scheduleBadgeUpdate);
+                window.removeEventListener('orientationchange', scheduleBadgeUpdate);
+            } catch(e){}
+
+            if (window.__a11yUpdateRaf__) {
+                cancelAnimationFrame(window.__a11yUpdateRaf__);
+                window.__a11yUpdateRaf__ = null;
+            }
+        } catch (e) {
+            console.error('clearHighlights error', e);
+        }
+    }
+
+    function scheduleBadgeUpdate() {
+        if (window.__a11yUpdateRaf__) return;
+        window.__a11yUpdateRaf__ = requestAnimationFrame(() => {
+            updateBadgePositions();
+            window.__a11yUpdateRaf__ = null;
         });
+    }
+
+    function updateBadgePositions() {
+        for (const [uid, entry] of window.__a11yBadgeMap__) {
+            const { el, badge } = entry;
+            if (!document.contains(el)) {
+                try { badge.remove(); } catch(e){}
+                if (window.__a11yResizeObserver__) {
+                    try { window.__a11yResizeObserver__.unobserve(el); } catch(e){}
+                }
+                window.__a11yBadgeMap__.delete(uid);
+                continue;
+            }
+
+            if (isElementHidden(el)) {
+                try { badge.style.display = 'none'; el.style.outline = ''; } catch(e){}
+                continue;
+            } else {
+                try { badge.style.display = ''; } catch(e){}
+            }
+
+            let rect;
+            try { rect = el.getBoundingClientRect(); } catch(e) { rect = null; }
+            if (rect) {
+                const top = window.scrollY + Math.max(rect.top, 0);
+                const left = window.scrollX + Math.max(rect.left, 0);
+                badge.style.top = `${top}px`;
+                badge.style.left = `${left}px`;
+            }
+        }
+    }
+
+    function genUid() {
+        return 'a11y-' + Math.random().toString(36).slice(2,9);
     }
 
     function highlightElement(elOrList, severity, code) {
@@ -490,31 +556,57 @@ function checkForComponentsWithNonDescriptiveText() {
         };
         const color = (severity && colorMap[severity]) ? colorMap[severity] : colorMap.error;
 
+        if (!window.__a11yListenersAdded__) {
+            window.addEventListener('scroll', scheduleBadgeUpdate, { passive: true });
+            window.addEventListener('resize', scheduleBadgeUpdate);
+            window.addEventListener('orientationchange', scheduleBadgeUpdate);
+            window.__a11yListenersAdded__ = true;
+        }
+
         nodes.forEach(el => {
             if (!(el instanceof Element)) return;
+            if (isElementHidden(el)) {
+                return;
+            }
 
             try {
-                if (el.dataset && el.dataset.a11yMarked) return;
-                if (el.dataset) el.dataset.a11yMarked = 'true';
-            } catch (e) {}
+                if (el.dataset && el.dataset.a11yMarked) {
+                    const uid = el.dataset.a11yMarked;
+                    const entry = window.__a11yBadgeMap__.get(uid);
+                    if (entry) {
+                        entry.badge.textContent = (code || 'A11Y').toUpperCase();
+                        entry.badge.style.background = color;
+                        el.style.outline = `3px dashed ${color}`;
+                        return;
+                    }
+                }
 
-            try { el.style.outline = `3px dashed ${color}`; el.style.outlineOffset = '2px'; } catch (e) {}
+                const uid = genUid();
 
-            let rect = null;
-            try { rect = el.getBoundingClientRect(); } catch (e) { rect = null; }
+                try { if (el.dataset) el.dataset.a11yMarked = uid; } catch(e){}
+                try { el.style.outline = `3px dashed ${color}`; el.style.outlineOffset = '2px'; } catch(e) {}
 
-            const badge = document.createElement('span');
-            badge.className = 'a11y-badge';
-            badge.textContent = (code || 'A11Y').toUpperCase();
-            badge.setAttribute('role', 'note');
-            badge.style.background = color;
+                const badge = document.createElement('span');
+                badge.className = 'a11y-badge';
+                badge.textContent = (code || 'A11Y').toUpperCase();
+                badge.setAttribute('role', 'note');
+                badge.style.background = color;
 
-            const top = (rect && rect.top !== undefined) ? (window.scrollY + Math.max(rect.top, 0)) : window.scrollY;
-            const left = (rect && rect.left !== undefined) ? (window.scrollX + Math.max(rect.left, 0)) : window.scrollX;
-            badge.style.top = `${top}px`;
-            badge.style.left = `${left}px`;
+                badge.style.top = '0px';
+                badge.style.left = '0px';
+                document.body.appendChild(badge);
 
-            document.body.appendChild(badge);
+                window.__a11yBadgeMap__.set(uid, { el, badge, severity, code });
+
+                if (window.__a11yResizeObserver__) {
+                    try { window.__a11yResizeObserver__.observe(el); } catch(e) {}
+                }
+
+                scheduleBadgeUpdate();
+
+            } catch (e) {
+                console.warn('highlightElement error', e);
+            }
         });
     }
 
