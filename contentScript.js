@@ -1,67 +1,143 @@
 (() => {
     if (window.__accessibilityCheckerLoaded__) {
-        console.log("♻️ Reexecutando verificações de acessibilidade...");
+        console.log("♻️ Reexecuting accessibility checks...");
         window.runAccessibilityChecks();
         return;
     }
 
     window.__accessibilityCheckerLoaded__ = true;
-    console.log("✅ Script de acessibilidade carregado com sucesso.");
+    console.log("✅ Acessibility checker script loaded.");
 
     class ErrorFactory {
-        static create(code, message, element = null) {
-            return { code, message, element };
+        static create(code, message, element = null, severity = "error") {
+            return { code, message, element, severity };
         }
     }
 
-    function markupValidationWithApi() {
-        return new Promise((resolve) => {
-            const errors = [];
-            const htmlContent = document.documentElement.outerHTML;
+    (function injectBadgeStyles() {
+        if (document.getElementById('a11y-badge-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'a11y-badge-styles';
+        style.textContent = `
+            .a11y-badge {
+                position: absolute;
+                display: inline-block;
+                transform: translate(0, -100%);
+                pointer-events: none;
+                font-family: Arial, sans-serif;
+                font-size: 11px;
+                line-height: 1;
+                padding: 3px 6px;
+                border-radius: 4px;
+                color: white;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+                z-index: 2147483647;
+                white-space: nowrap;
+            }
+        `;
+        document.head.appendChild(style);
+    })();
 
-            // API de validação de semântica HTML (W3C Nu Validator)
-            fetch("https://validator.w3.org/nu/?out=json", {
+
+    function isElementHidden(el) {
+        if (!el) return true;
+
+        if (el.closest('[aria-hidden="true"]')) {
+            return true;
+        }
+
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') {
+            return true;
+        }
+
+        return false;
+    }
+
+    function getVisibleElements(selector) {
+        const elements = [...document.querySelectorAll(selector)];
+        return elements.filter(el => !isElementHidden(el));
+    }
+
+    // ============================================================
+    // FUNÇÕES DE CHECAGEM DE ACESSIBILIDADE
+    // ============================================================
+
+    async function markupValidationWithApi(timeoutMs = 6000) {
+        const errors = [];
+        const htmlContent = document.documentElement.outerHTML;
+
+        // AbortController para timeout
+        const controller = ('AbortController' in window) ? new AbortController() : null;
+        const signal = controller ? controller.signal : undefined;
+        if (controller) setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            const response = await fetch("https://validator.w3.org/nu/?out=json", {
                 method: "POST",
                 headers: {
                     "Content-Type": "text/html; charset=utf-8",
                     "Accept": "application/json",
                 },
-                body: htmlContent
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Validador retornou status ' + response.status);
+                body: htmlContent,
+                signal: signal,
+            });
+
+            if (!response.ok) {
+                throw new Error('Checker returned ' + response.status);
+            }
+
+            const data = await response.json();
+
+            for (let msg of data.messages) {
+
+                let code, severity;
+                const lineInfo = msg.lastLine ? ` (line ${msg.lastLine})` : '';
+
+                switch (msg.type) {
+                    case 'error':
+                        code = 'html-semantics-error';
+                        severity = 'error';
+                        break;
+                    case 'info':
+                        code = 'html-semantics-info';
+                        severity = 'warning';
+                        break;
+                    case 'warning':
+                        code = 'html-semantics-warning';
+                        severity = 'warning';
+                        break;
+                    case 'non-document-error':
+                        code = 'html-validator-error';
+                        severity = 'warning';
+                        break;
+                    default:
+                        code = 'html-semantics-unknown';
+                        severity = 'info';
                 }
-                return response.json();
-            })
-            .then(data => {
-                if (data && Array.isArray(data.messages)) {
-                    data.messages.forEach(msg => {
-                        // mapear erros e warnings do validador para o formato interno
-                        const type = msg.type || 'info';
-                        const code = (type === 'error') ? 'html-semantics-error' : 'html-semantics-warning';
-                        const lineInfo = msg.lastLine ? ` (linha ${msg.lastLine})` : '';
-                        errors.push(
-                            ErrorFactory.create(
-                                code,
-                                `${msg.message}${lineInfo}`
-                            )
-                        );
-                    });
-                }
-            })
-            .catch(err => {
+
                 errors.push(
                     ErrorFactory.create(
-                        "markup-validation-failed",
-                        "Falha ao validar markup via W3C Validator: " + (err && err.message ? err.message : String(err))
+                        code,
+                        `${msg.message}${lineInfo}`,
+                        null,
+                        severity
                     )
                 );
-            })
-            .finally(() => {
-                resolve(errors);
-            });
-        });
+            }
+
+        } catch (err) {
+            errors.push(
+                ErrorFactory.create(
+                    "markup-validation-failed",
+                    "W3C Validator Fail: " + (err && err.message ? err.message : String(err)),
+                    null,
+                    "warning"
+                )
+            );
+        }
+
+        return errors;
     }
 
     function checkForLanguageAttribute() {
@@ -72,8 +148,9 @@
             errors.push(
                 ErrorFactory.create(
                     "missing-lang",
-                    "O elemento <html> não possui o atributo 'lang' definido!",
-                    html
+                    "The <html> tag doesn't have a 'lang' attribute defined.",
+                    html,
+                    "error"
                 )
             );
         }
@@ -83,15 +160,27 @@
 
     function checkForIframesWithoutTitle() {
         const errors = [];
-        const iframes = [...document.querySelectorAll("iframe")];
+        const iframes = getVisibleElements("iframe");
 
         for (let iframe of iframes) {
-            if (!iframe.hasAttribute("title") || iframe.getAttribute("title").trim() === "") {
+
+            if (!iframe.hasAttribute("title")) {
                 errors.push(
                     ErrorFactory.create(
                         "iframe-missing-title",
-                        "O elemento <iframe> não possui o atributo 'title' definido!",
-                        iframe
+                        "The <iframe> element is missing a 'title' attribute.",
+                        iframe,
+                        "error"
+                    )
+                );
+
+            } else if (iframe.getAttribute("title").trim() === "") {
+                errors.push(
+                    ErrorFactory.create(
+                        "iframe-empty-title",
+                        "The <iframe> element has an empty 'title' attribute.",
+                        iframe,
+                        "warning"
                     )
                 );
             }
@@ -103,21 +192,23 @@
 
     function checkForHeadingsHierarchy() {
         const errors = [];
-        const headings = [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")];
+        const headings = getVisibleElements("h1, h2, h3, h4, h5, h6");
         const myMap = new Map([
-            ["h1", 1], ["h2", 2], ["h3", 3], ["h4", 4], ["h5", 5], ["h6", 6],
+            ["h1", 1], ["h2", 2],
+            ["h3", 3], ["h4", 4],
+            ["h5", 5], ["h6", 6],
         ]);
 
         // Verifica se há a algum heading
         if (headings.length === 0) {
-            errors.push(ErrorFactory.create("no-headings", "A página não possui headings!"));
+            errors.push(ErrorFactory.create("no-headings", "The page doesn't have headings."));
             return errors;
         }
 
         // Verifica se há múltiplos H1
         const h1s = headings.filter(h => h.tagName.toLowerCase() === 'h1');
         if (h1s.length > 1) {
-            errors.push(ErrorFactory.create("multiple-h1", "A página possui múltiplos <h1>!", h1s));
+            h1s.forEach(h => errors.push(ErrorFactory.create("multiple-h1-instance", "<h1> duplicated at current position.", h, "warning")));
         }
 
         const stack = [];
@@ -129,8 +220,9 @@
                 errors.push(
                     ErrorFactory.create(
                         "invalid-heading-hierarchy",
-                        `Heading pulou de <h${stack[stack.length - 1]}> para <h${currentLevel}>!`,
-                        heading
+                        `Heading jumped from <h${stack[stack.length - 1]}> to <h${currentLevel}>.`,
+                        heading,
+                        "warning"
                     )
                 );
             }
@@ -147,27 +239,26 @@
 
     function checkForImagesWithoutAlt() {
         const errors = [];
-        const imgs = Array.from(document.querySelectorAll('img'));
+        const imgs = getVisibleElements('img');
 
         for (let img of imgs) {
             if (!img.hasAttribute('alt')) {
                 errors.push(
                     ErrorFactory.create(
                         "img-missing-alt",
-                        "Imagem sem atributo 'alt' (atributo ausente).",
-                        img
+                        "Image without 'alt' attribute.",
+                        img,
+                        "error"
                     )
                 );
-                continue;
             }
-
-            const alt = (img.getAttribute('alt') || "").trim();
-            if (alt === "") {
+            else if (img.getAttribute('alt').trim() === "") {
                 errors.push(
                     ErrorFactory.create(
                         "img-empty-alt",
-                        "Imagem com 'alt' vazio — verifique se é intencionalmente decorativa.",
-                        img
+                        "Image with empty 'alt' attribute.",
+                        img,
+                        "warning"
                     )
                 );
             }
@@ -177,9 +268,9 @@
 
     function checkForFormFieldsWithoutLabel() {
         const errors = [];
-        const fields = Array.from(document.querySelectorAll(
+        const fields = getVisibleElements(
             'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), textarea, select'
-        ));
+        );
 
         for (let field of fields) {
             if (field.getAttribute('aria-hidden') === 'true') continue;
@@ -194,8 +285,9 @@
                 errors.push(
                     ErrorFactory.create(
                         "form-field-missing-label",
-                        "Campo de formulário sem <label> associado nem aria-label/aria-labelledby.",
-                        field
+                        "Form field without associated label or aria-label.",
+                        field,
+                        "error"
                     )
                 );
             }
@@ -203,41 +295,54 @@
         return errors;
     }
 
-    function checkForLinksWithNonDescriptiveText() {
+function checkForComponentsWithNonDescriptiveText() {
         const errors = [];
+
         const genericTexts = new Set([
-            '', 'clique aqui', 'saiba mais', 'aqui', 'leia mais', 'mais', 'ver mais', 'link', 'press here', 'click here'
+        "clique aqui", "saiba mais", "leia mais", "veja mais", "ver mais",
+        "mais", "aqui", "link", "detalhes", "informações",
+        "continue", "confira", "acesse", "explorar", "descubra",
+        "ver tudo", "ver detalhes", "mais informações",
+        "ler mais", "saiba", "ver", "visite",
+        "click here", "read more", "learn more", "see more",
+        "more info", "more information", "view more"
         ]);
 
-        const anchors = Array.from(document.querySelectorAll('a'));
+        const anchors = getVisibleElements('a, button');
 
         for (let a of anchors) {
-            const href = a.getAttribute('href');
-            if (!href || href.trim() === '' || /^javascript:/i.test(href.trim())) {
-                // Se for ancoragem intra-página como "#id", ainda verificamos o texto — mas ignore href undefined
-                // continue; // (não usamos continue aqui para também detectar anchors vazias com href ausente)
-            }
 
-            const text = (a.textContent || '').trim().toLowerCase();
-            const ariaLabel = (a.getAttribute('aria-label') || '').trim();
+            const text = a.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+            const ariaLabel = (a.getAttribute('aria-label') || '').trim().toLowerCase();
 
-            if (text === '' && ariaLabel === '') {
+            const effectiveText = text || ariaLabel;
+
+            if (effectiveText === '') {
+
+                const imgWithAlt = a.querySelector('img[alt]');
+                if (imgWithAlt && imgWithAlt.getAttribute('alt').trim() !== '') {
+                    continue;
+                }
+
                 errors.push(
                     ErrorFactory.create(
-                        "link-empty-text",
-                        "Link sem texto descritivo nem aria-label; verifique se tem nome acessível.",
-                        a
+                        "component-empty-text",
+                        "Component (link or button) is empty or has no accessible name.",
+                        a,
+                        "error"
                     )
                 );
                 continue;
             }
 
-            if (genericTexts.has(text)) {
+            const wordCount = effectiveText.split(/\s+/).length;
+            if (genericTexts.has(effectiveText) || wordCount < 2) {
                 errors.push(
                     ErrorFactory.create(
-                        "link-nondescriptive-text",
-                        `Link com texto não descritivo ("${text}") — prefira textos que descrevam o destino/ação.`,
-                        a
+                        "component-nondescriptive-text",
+                        `Component with non-descriptive text: “${effectiveText}”.`,
+                        a,
+                        "warning"
                     )
                 );
             }
@@ -245,129 +350,210 @@
         return errors;
     }
 
-    async function loadAxeIfNeeded() {
-        if (window.axe) return Promise.resolve();
+    function checkForLandmarks() {
+        const errors = [];
+        const landmarks = getVisibleElements('header, nav, main, aside, footer');
 
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = chrome.runtime.getURL('lib/axe.min.js');
-            script.onload = () => {
-                console.log("✅ axe-core carregado localmente");
-                resolve();
-            };
-            script.onerror = () => reject(new Error("Falha ao carregar axe-core local"));
-            document.documentElement.appendChild(script);
-        });
-    }
+        if (landmarks.length == 0) {
+            errors.push(
+                ErrorFactory.create(
+                    "no-landmarks",
+                    "The page doesn't contain any landmark regions (e.g., <main>, <nav>, <header>, <footer>).",
+                    null,
+                    "warning"
+                )
+            );
 
-    async function checkContrastWithAxe() {
-    const errors = [];
-    await loadAxeIfNeeded();
-
-    return new Promise((resolve) => {
-        const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('lib/axe-runner.js');
-        (document.head || document.documentElement).appendChild(script);
-
-        window.addEventListener('message', function handler(event) {
-        if (event.data.type === 'AXE_RESULTS') {
-            window.removeEventListener('message', handler);
-
-            if (event.data.error) {
-                errors.push({
-                    code: 'axe-error',
-                    message: 'Falha ao executar axe-core: ' + event.data.error
-                });
-
-                resolve(errors);
-
-                return;
-            }
-
-            const results = event.data.results;
-                if (results && results.violations) {
-                results.violations.forEach(v => {
-                    v.nodes.forEach(node => {
-                    errors.push({
-                        code: v.id,
-                        message: v.help,
-                        description: v.description,
-                        impact: v.impact,
-                        helpUrl: v.helpUrl,
-                        element: node.target?.[0] || '(elemento não identificado)',
-                        html: node.html || '(sem HTML)',
-                        details: node.failureSummary || ''
-                    });
-                });
-            });
-            }
-
-            resolve(errors);
+            return errors;
         }
-        });
-    });
+
+        let mainLandmarks = landmarks.filter(l => l.tagName.toLowerCase() === 'main');
+
+        if (!mainLandmarks.length) {
+            errors.push(
+                ErrorFactory.create(
+                    "no-main-landmark",
+                    "The page doesn't contain a <main> landmark region.",
+                    null,
+                    "error"
+                )
+            );
+        } else if (mainLandmarks.length > 1) {
+            errors.push(
+                ErrorFactory.create(
+                    "multiple-main-landmarks",
+                    "The page contains multiple <main> landmark regions.",
+                    null,
+                    "error"
+                )
+            );
+        }
+        return errors;
     }
 
+    // ============================================================
+    // FUNÇÕES DE REALCE VISUAL
+    // ============================================================
+
+    window.__a11yHighlightEnabled__ = true;
+
+    function clearHighlights() {
+        const badges = document.querySelectorAll('.a11y-badge');
+        badges.forEach(b => b.remove());
+
+        const marked = document.querySelectorAll('[data-a11y-marked="true"]');
+        marked.forEach(el => {
+            try {
+                el.removeAttribute('data-a11y-marked');
+                el.style.outline = '';
+                el.style.outlineOffset = '';
+            } catch (e) { /* ignora */ }
+        });
+    }
+
+    function highlightElement(elOrList, severity, code) {
+        if (!window.__a11yHighlightEnabled__) return;
+        if (!elOrList) return;
+
+        let nodes = null;
+        if (elOrList instanceof Element) {
+            nodes = [elOrList];
+        } else if (NodeList.prototype.isPrototypeOf(elOrList) || Array.isArray(elOrList)) {
+            nodes = Array.from(elOrList);
+        } else {
+            return;
+        }
+
+        const colorMap = {
+            error: 'rgba(255, 0, 0, 0.85)',
+            warning: 'rgba(255, 165, 0, 0.85)',
+            info: 'rgba(30, 144, 255, 0.85)'
+        };
+        const color = (severity && colorMap[severity]) ? colorMap[severity] : colorMap.error;
+
+        nodes.forEach(el => {
+            if (!(el instanceof Element)) return;
+
+            try {
+                if (el.dataset && el.dataset.a11yMarked) return;
+                if (el.dataset) el.dataset.a11yMarked = 'true';
+            } catch (e) {}
+
+            try { el.style.outline = `3px dashed ${color}`; el.style.outlineOffset = '2px'; } catch (e) {}
+
+            let rect = null;
+            try { rect = el.getBoundingClientRect(); } catch (e) { rect = null; }
+
+            const badge = document.createElement('span');
+            badge.className = 'a11y-badge';
+            badge.textContent = (code || 'A11Y').toUpperCase();
+            badge.setAttribute('role', 'note');
+            badge.style.background = color;
+
+            const top = (rect && rect.top !== undefined) ? (window.scrollY + Math.max(rect.top, 0)) : window.scrollY;
+            const left = (rect && rect.left !== undefined) ? (window.scrollX + Math.max(rect.left, 0)) : window.scrollX;
+            badge.style.top = `${top}px`;
+            badge.style.left = `${left}px`;
+
+            document.body.appendChild(badge);
+        });
+    }
 
     // ============================================================
     // EXECUÇÃO CENTRAL
     // ============================================================
 
     window.runAccessibilityChecks = async () => {
+        try { clearHighlights(); } catch (e) { /* ignora */ }
 
-        const accessibilityChecks = {
+        // 1. Separamos as checagens por tipo
+        const syncChecks = [
             checkForLanguageAttribute,
             checkForHeadingsHierarchy,
             checkForIframesWithoutTitle,
             checkForImagesWithoutAlt,
             checkForFormFieldsWithoutLabel,
-            checkForLinksWithNonDescriptiveText,
+            checkForComponentsWithNonDescriptiveText,
+            checkForLandmarks,
+        ];
+
+        const asyncChecks = [
             markupValidationWithApi,
-            checkContrastWithAxe,
-        };
+        ];
 
         const allErrors = [];
 
-        for (let checkName in accessibilityChecks) {
+        // 2. Executa todas as checagens SÍNCRONAS
+        console.log("Running sync checks...");
+        for (const check of syncChecks) {
             try {
-                const result = accessibilityChecks[checkName]();
-
-                if (result && typeof result.then === 'function') {
-                    // é uma Promise -> aguarda
-                    const asyncResult = await result;
-                    if (Array.isArray(asyncResult) && asyncResult.length) {
-                        allErrors.push(...asyncResult);
-                    }
-                } else {
-                    // síncrono
-                    if (Array.isArray(result) && result.length) {
-                        allErrors.push(...result);
-                    }
+                const result = check(); // Retorna um Array de erros
+                if (Array.isArray(result) && result.length) {
+                    allErrors.push(...result);
                 }
             } catch (e) {
-                // Em caso de erro em uma checagem, registre o erro e continue
                 allErrors.push(
                     ErrorFactory.create(
                         "check-runtime-error",
-                        `Erro ao executar a checagem "${checkName}": ${e && e.message ? e.message : String(e)}`
+                        `Error executing sync check "${check.name}": ${e.message}`,
+                        null, "error"
                     )
                 );
-                console.error(`Erro em checagem ${checkName}:`, e);
+                console.error(`Checking error "${check.name}":`, e);
             }
         }
 
-        // 🧠 Log detalhado (para testes)
-        console.groupCollapsed(`♿️ ${allErrors.length} erros de acessibilidade encontrados`);
+        // 3. Executa todas as checagens ASSÍNCRONAS em paralelo
+        console.log("Running async checks in parallel...");
+        const asyncPromises = asyncChecks.map(check => check());
+        const results = await Promise.allSettled(asyncPromises);
+
+        results.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+
+                const asyncResult = result.value;
+
+                if (Array.isArray(asyncResult) && asyncResult.length) {
+                    allErrors.push(...asyncResult);
+                }
+            } else {
+                const checkName = asyncChecks[index].name;
+                allErrors.push(
+                    ErrorFactory.create(
+                        "check-runtime-error",
+                        `Async check "${checkName}" failed: ${result.reason.message}`,
+                        null, "error"
+                    )
+                );
+                console.error(`Async check "${checkName}" failed:`, result.reason);
+            }
+        });
+
+        console.groupCollapsed(`♿️ ${allErrors.length} accessibility issues found.`);
         for (const err of allErrors) {
-            console.groupCollapsed(`%c${err.code}`, "color: red; font-weight: bold;");
+            const sev = err.severity || 'error';
+            const color = sev === "warning" ? "orange" : (sev === "info" ? "dodgerblue" : "red");
+
+            console.groupCollapsed(
+                `%c[${sev.toUpperCase()}] ${err.code}`,
+                `color:${color}; font-weight:bold;`
+            );
             console.log(err.message);
-            console.log("Elemento problemático:", err.element);
+            if (err.element) console.log("Problematic element:", err.element);
             console.groupEnd();
+
+            try {
+                highlightElement(err.element, sev, err.code);
+            } catch(e) {
+                /* ignora falhas de realce */
+            }
         }
         console.groupEnd();
 
-        chrome.runtime.sendMessage({ type: "DONE", allErrors: allErrors });
-        console.log("✅ Verificações concluídas e enviadas ao background.");
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            chrome.runtime.sendMessage({ type: "DONE", allErrors: allErrors });
+        }
+        console.log("✅ Checks completed.");
     };
 
     window.runAccessibilityChecks();
