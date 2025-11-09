@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             // Primeiro injeta colorChecker.js
             chrome.scripting.executeScript({
                 target: { tabId: activeTab.id },
-                files: ["contentScript.js"]
+                files: ["lib/axe.min.js", "contentScript.js"]
             })
         });
     }

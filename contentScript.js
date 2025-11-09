@@ -63,6 +63,65 @@
     // FUNÇÕES DE CHECAGEM DE ACESSIBILIDADE
     // ============================================================
 
+    function mapAxeImpactToSeverity(impact) {
+        const axeMap = new Map([
+            ['critical', 'error'],
+            ['serious', 'error'],
+            ['moderate', 'warning'],
+            ['minor', 'info']
+        ]);
+
+        if (axeMap.has(impact)) {
+            return axeMap.get(impact) || 'warning';
+        }
+    }
+
+    async function checkColorContrastWithAxe() {
+        const errors = [];
+        if (!window.axe) {
+            errors.push(
+                ErrorFactory.create(
+                    "axe-not-loaded",
+                    "Axe library is not loaded.",
+                    null,
+                    "warning"
+                )
+            );
+            return errors;
+        }
+
+        console.log("Executing Axe for color contrast checks...");
+        try {
+            // Executa o Axe apenas para a regra 'color-contrast'
+            const results = await window.axe.run(document.body, {
+                runOnly: ['color-contrast'],
+            });
+
+            // Itera sobre as violações encontradas
+            for (const violation of results.violations) {
+                for (const node of violation.nodes) {
+                    const severity = mapAxeImpactToSeverity(node.impact);
+                    const element = document.querySelector(node.target);
+                    const message = `[Axe] ${violation.help}.`;
+
+                    errors.push(
+                        ErrorFactory.create(
+                            violation.id,
+                            message,
+                            element,
+                            severity
+                        )
+                    );
+                }
+            }
+
+        } catch (err) {
+            console.error("Error when executing Axe:", err);
+        }
+
+        return errors;
+    }
+
     async function markupValidationWithApi(timeoutMs = 6000) {
         const errors = [];
         const htmlContent = document.documentElement.outerHTML;
@@ -479,6 +538,7 @@ function checkForComponentsWithNonDescriptiveText() {
 
         const asyncChecks = [
             markupValidationWithApi,
+            checkColorContrastWithAxe
         ];
 
         const allErrors = [];

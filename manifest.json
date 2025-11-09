@@ -15,7 +15,7 @@
 
     "web_accessible_resources": [
         {
-            "resources": ["lib/axe.min.js", "lib/axe-runner.js"],
+            "resources": ["lib/axe.min.js"],
             "matches": ["<all_urls>"]
         }
     ],
