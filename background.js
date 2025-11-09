@@ -15,12 +15,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.type === "DONE") {
+        chrome.storage.local.set({ lastResults: request.allErrors });
+
         chrome.runtime.sendMessage({
             type: "ANALYSIS_COMPLETE",
             payload: request.allErrors
         });
-
-        chrome.storage.local.set({ lastResults: request.allErrors });
         return true;
     }
 });
