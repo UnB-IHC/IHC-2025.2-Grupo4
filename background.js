@@ -10,11 +10,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 files: ["lib/axe.min.js", "contentScript.js"]
             })
         });
+
+        return true;
     }
 
     if (request.type === "DONE") {
-        console.log("✅ A análise foi concluída!");
-        console.log("Erros encontrados:", request.allErrors);
+        chrome.runtime.sendMessage({
+            type: "ANALYSIS_COMPLETE",
+            payload: request.allErrors
+        });
+
         chrome.storage.local.set({ lastResults: request.allErrors });
+        return true;
     }
 });
