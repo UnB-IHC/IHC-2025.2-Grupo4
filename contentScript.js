@@ -38,64 +38,106 @@
         document.head.appendChild(style);
     })();
 
-    function markupValidationWithApi(timeoutMs = 6000) {
-        return new Promise((resolve) => {
-            const errors = [];
-            const htmlContent = document.documentElement.outerHTML;
 
-            // AbortController para timeout
-            const controller = ('AbortController' in window) ? new AbortController() : null;
-            const signal = controller ? controller.signal : undefined;
-            if (controller) setTimeout(() => controller.abort(), timeoutMs);
+    function isElementHidden(el) {
+        if (!el) return true;
 
-            // API de validação de semântica HTML (W3C Nu Validator)
-            fetch("https://validator.w3.org/nu/?out=json", {
+        if (el.closest('[aria-hidden="true"]')) {
+            return true;
+        }
+
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') {
+            return true;
+        }
+
+        return false;
+    }
+
+    function getVisibleElements(selector) {
+        const elements = [...document.querySelectorAll(selector)];
+        return elements.filter(el => !isElementHidden(el));
+    }
+
+    // ============================================================
+    // FUNÇÕES DE CHECAGEM DE ACESSIBILIDADE
+    // ============================================================
+
+    async function markupValidationWithApi(timeoutMs = 6000) {
+        const errors = [];
+        const htmlContent = document.documentElement.outerHTML;
+
+        // AbortController para timeout
+        const controller = ('AbortController' in window) ? new AbortController() : null;
+        const signal = controller ? controller.signal : undefined;
+        if (controller) setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            const response = await fetch("https://validator.w3.org/nu/?out=json", {
                 method: "POST",
                 headers: {
                     "Content-Type": "text/html; charset=utf-8",
                     "Accept": "application/json",
                 },
-                body: htmlContent
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Checker returned ' + response.status);
+                body: htmlContent,
+                signal: signal,
+            });
+
+            if (!response.ok) {
+                throw new Error('Checker returned ' + response.status);
+            }
+
+            const data = await response.json();
+
+            for (let msg of data.messages) {
+
+                let code, severity;
+                const lineInfo = msg.lastLine ? ` (line ${msg.lastLine})` : '';
+
+                switch (msg.type) {
+                    case 'error':
+                        code = 'html-semantics-error';
+                        severity = 'error';
+                        break;
+                    case 'info':
+                        code = 'html-semantics-info';
+                        severity = 'warning';
+                        break;
+                    case 'warning':
+                        code = 'html-semantics-warning';
+                        severity = 'warning';
+                        break;
+                    case 'non-document-error':
+                        code = 'html-validator-error';
+                        severity = 'warning';
+                        break;
+                    default:
+                        code = 'html-semantics-unknown';
+                        severity = 'info';
                 }
-                return response.json();
-            })
-            .then(data => {
-                if (data && Array.isArray(data.messages)) {
-                    data.messages.forEach(msg => {
-                        // mapear erros e warnings do validador para o formato interno
-                        const type = msg.type || 'info';
-                        const code = (type === 'error') ? 'html-semantics-error' : 'html-semantics-warning';
-                        const lineInfo = msg.lastLine ? ` (linha ${msg.lastLine})` : '';
-                        const severity = (type === 'error') ? 'error' : (type === 'warning' ? 'warning' : 'info');
-                        errors.push(
-                            ErrorFactory.create(
-                                code,
-                                `${msg.message}${lineInfo}`,
-                                null,
-                                severity
-                            )
-                        );
-                    });
-                }
-            })
-            .catch(err => {
+
                 errors.push(
                     ErrorFactory.create(
-                        "markup-validation-failed",
-                        "W3C Validator Fail: " + (err && err.message ? err.message : String(err)),
+                        code,
+                        `${msg.message}${lineInfo}`,
                         null,
-                        "warning"
+                        severity
                     )
                 );
-            })
-            .finally(() => {
-                resolve(errors);
-            });
-        });
+            }
+
+        } catch (err) {
+            errors.push(
+                ErrorFactory.create(
+                    "markup-validation-failed",
+                    "W3C Validator Fail: " + (err && err.message ? err.message : String(err)),
+                    null,
+                    "warning"
+                )
+            );
+        }
+
+        return errors;
     }
 
     function checkForLanguageAttribute() {
@@ -118,14 +160,25 @@
 
     function checkForIframesWithoutTitle() {
         const errors = [];
-        const iframes = Array.from(document.querySelectorAll("iframe"));
+        const iframes = getVisibleElements("iframe");
 
         for (let iframe of iframes) {
-            if (!iframe.hasAttribute("title") || iframe.getAttribute("title").trim() === "") {
+
+            if (!iframe.hasAttribute("title")) {
                 errors.push(
                     ErrorFactory.create(
                         "iframe-missing-title",
-                        "The <iframe> element is missing a 'title' attribute or it is empty.",
+                        "The <iframe> element is missing a 'title' attribute.",
+                        iframe,
+                        "error"
+                    )
+                );
+
+            } else if (iframe.getAttribute("title").trim() === "") {
+                errors.push(
+                    ErrorFactory.create(
+                        "iframe-empty-title",
+                        "The <iframe> element has an empty 'title' attribute.",
                         iframe,
                         "warning"
                     )
@@ -139,9 +192,11 @@
 
     function checkForHeadingsHierarchy() {
         const errors = [];
-        const headings = Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+        const headings = getVisibleElements("h1, h2, h3, h4, h5, h6");
         const myMap = new Map([
-            ["h1", 1], ["h2", 2], ["h3", 3], ["h4", 4], ["h5", 5], ["h6", 6],
+            ["h1", 1], ["h2", 2],
+            ["h3", 3], ["h4", 4],
+            ["h5", 5], ["h6", 6],
         ]);
 
         // Verifica se há a algum heading
@@ -153,7 +208,6 @@
         // Verifica se há múltiplos H1
         const h1s = headings.filter(h => h.tagName.toLowerCase() === 'h1');
         if (h1s.length > 1) {
-            errors.push(ErrorFactory.create("multiple-h1", "The page contains multiple <h1> tags.", null, "warning"));
             h1s.forEach(h => errors.push(ErrorFactory.create("multiple-h1-instance", "<h1> duplicated at current position.", h, "warning")));
         }
 
@@ -166,7 +220,7 @@
                 errors.push(
                     ErrorFactory.create(
                         "invalid-heading-hierarchy",
-                        `Heading jumped from <h${stack[stack.length - 1]}> to <h${currentLevel}>!`,
+                        `Heading jumped from <h${stack[stack.length - 1]}> to <h${currentLevel}>.`,
                         heading,
                         "warning"
                     )
@@ -185,7 +239,7 @@
 
     function checkForImagesWithoutAlt() {
         const errors = [];
-        const imgs = Array.from(document.querySelectorAll('img'));
+        const imgs = getVisibleElements('img');
 
         for (let img of imgs) {
             if (!img.hasAttribute('alt')) {
@@ -197,11 +251,8 @@
                         "error"
                     )
                 );
-                continue;
             }
-
-            const alt = (img.getAttribute('alt') || "").trim();
-            if (alt === "") {
+            else if (img.getAttribute('alt').trim() === "") {
                 errors.push(
                     ErrorFactory.create(
                         "img-empty-alt",
@@ -217,9 +268,9 @@
 
     function checkForFormFieldsWithoutLabel() {
         const errors = [];
-        const fields = Array.from(document.querySelectorAll(
+        const fields = getVisibleElements(
             'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), textarea, select'
-        ));
+        );
 
         for (let field of fields) {
             if (field.getAttribute('aria-hidden') === 'true') continue;
@@ -244,7 +295,7 @@
         return errors;
     }
 
-    function checkForComponentsWithNonDescriptiveText() {
+function checkForComponentsWithNonDescriptiveText() {
         const errors = [];
 
         const genericTexts = new Set([
@@ -257,11 +308,9 @@
         "more info", "more information", "view more"
         ]);
 
-        const anchors = [...document.querySelectorAll('a, button')];
+        const anchors = getVisibleElements('a, button');
 
         for (let a of anchors) {
-
-            if (a.hasChildNodes) continue;
 
             const text = a.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
             const ariaLabel = (a.getAttribute('aria-label') || '').trim().toLowerCase();
@@ -269,10 +318,16 @@
             const effectiveText = text || ariaLabel;
 
             if (effectiveText === '') {
+
+                const imgWithAlt = a.querySelector('img[alt]');
+                if (imgWithAlt && imgWithAlt.getAttribute('alt').trim() !== '') {
+                    continue;
+                }
+
                 errors.push(
                     ErrorFactory.create(
                         "component-empty-text",
-                        "Component with empty text.",
+                        "Component (link or button) is empty or has no accessible name.",
                         a,
                         "error"
                     )
@@ -297,7 +352,7 @@
 
     function checkForLandmarks() {
         const errors = [];
-        const landmarks = [...document.querySelectorAll('header, nav, main, aside, footer')];
+        const landmarks = getVisibleElements('header, nav, main, aside, footer');
 
         if (landmarks.length == 0) {
             errors.push(
@@ -308,6 +363,8 @@
                     "warning"
                 )
             );
+
+            return errors;
         }
 
         let mainLandmarks = landmarks.filter(l => l.tagName.toLowerCase() === 'main');
@@ -409,78 +466,93 @@
     window.runAccessibilityChecks = async () => {
         try { clearHighlights(); } catch (e) { /* ignora */ }
 
-        const accessibilityChecks = {
+        // 1. Separamos as checagens por tipo
+        const syncChecks = [
             checkForLanguageAttribute,
             checkForHeadingsHierarchy,
             checkForIframesWithoutTitle,
             checkForImagesWithoutAlt,
             checkForFormFieldsWithoutLabel,
             checkForComponentsWithNonDescriptiveText,
-            markupValidationWithApi,
             checkForLandmarks,
-        };
+        ];
+
+        const asyncChecks = [
+            markupValidationWithApi,
+        ];
 
         const allErrors = [];
 
-        for (let checkName in accessibilityChecks) {
+        // 2. Executa todas as checagens SÍNCRONAS
+        console.log("Running sync checks...");
+        for (const check of syncChecks) {
             try {
-                const result = accessibilityChecks[checkName]();
-
-                if (result && typeof result.then === 'function') {
-                    // é uma Promise -> aguarda
-                    const asyncResult = await result;
-                    if (Array.isArray(asyncResult) && asyncResult.length) {
-                        allErrors.push(...asyncResult);
-                    }
-                } else {
-                    // síncrono
-                    if (Array.isArray(result) && result.length) {
-                        allErrors.push(...result);
-                    }
+                const result = check(); // Retorna um Array de erros
+                if (Array.isArray(result) && result.length) {
+                    allErrors.push(...result);
                 }
             } catch (e) {
-                // Em caso de erro em uma checagem, registre o erro e continue
                 allErrors.push(
                     ErrorFactory.create(
                         "check-runtime-error",
-                        `Error when executing check "${checkName}": ${e && e.message ? e.message : String(e)}`,
-                        null,
-                        "error"
+                        `Error executing sync check "${check.name}": ${e.message}`,
+                        null, "error"
                     )
                 );
-                console.error(`Checking error "${checkName}":`, e);
+                console.error(`Checking error "${check.name}":`, e);
             }
         }
 
-        // 🧠 Log detalhado (para testes)
-        console.groupCollapsed(`♿️ ${allErrors.length} acessibility issues found.`);
+        // 3. Executa todas as checagens ASSÍNCRONAS em paralelo
+        console.log("Running async checks in parallel...");
+        const asyncPromises = asyncChecks.map(check => check());
+        const results = await Promise.allSettled(asyncPromises);
+
+        results.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+
+                const asyncResult = result.value;
+
+                if (Array.isArray(asyncResult) && asyncResult.length) {
+                    allErrors.push(...asyncResult);
+                }
+            } else {
+                const checkName = asyncChecks[index].name;
+                allErrors.push(
+                    ErrorFactory.create(
+                        "check-runtime-error",
+                        `Async check "${checkName}" failed: ${result.reason.message}`,
+                        null, "error"
+                    )
+                );
+                console.error(`Async check "${checkName}" failed:`, result.reason);
+            }
+        });
+
+        console.groupCollapsed(`♿️ ${allErrors.length} accessibility issues found.`);
         for (const err of allErrors) {
-            const sev = err && err.severity ? err.severity : 'error';
+            const sev = err.severity || 'error';
             const color = sev === "warning" ? "orange" : (sev === "info" ? "dodgerblue" : "red");
 
-            for (const err of allErrors) {
-                const sev = err && err.severity ? err.severity : 'error';
-                const color = sev === "warning" ? "orange" : (sev === "info" ? "dodgerblue" : "red");
-
-                console.groupCollapsed(
-                    `%c[${sev.toUpperCase()}] ${err.code}`,
-                    `color:${color}; font-weight:bold;`
-                );
-                console.log(err.message);
-                if (err.element) console.log("Problematic element:", err.element);
-                console.groupEnd();
-
-                try { highlightElement(err.element, sev, err.code); } catch (e) { /* ignora */ }
-            }
+            console.groupCollapsed(
+                `%c[${sev.toUpperCase()}] ${err.code}`,
+                `color:${color}; font-weight:bold;`
+            );
             console.log(err.message);
             if (err.element) console.log("Problematic element:", err.element);
             console.groupEnd();
 
-            try { highlightElement(err.element, err.severity || 'error', err.code); } catch(e) { /* ignora */ }
+            try {
+                highlightElement(err.element, sev, err.code);
+            } catch(e) {
+                /* ignora falhas de realce */
+            }
         }
         console.groupEnd();
 
-        chrome.runtime.sendMessage({ type: "DONE", allErrors: allErrors });
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            chrome.runtime.sendMessage({ type: "DONE", allErrors: allErrors });
+        }
         console.log("✅ Checks completed.");
     };
 
