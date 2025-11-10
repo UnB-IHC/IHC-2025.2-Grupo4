@@ -354,17 +354,17 @@
         return errors;
     }
 
-    function checkForComponentsWithNonDescriptiveText() {
+function checkForComponentsWithNonDescriptiveText() {
         const errors = [];
 
         const genericTexts = new Set([
-            "clique aqui", "saiba mais", "leia mais", "veja mais", "ver mais",
-            "mais", "aqui", "link", "detalhes", "informações",
-            "continue", "confira", "acesse", "explorar", "descubra",
-            "ver tudo", "ver detalhes", "mais informações",
-            "ler mais", "saiba", "ver", "visite",
-            "click here", "read more", "learn more", "see more",
-            "more info", "more information", "view more"
+        "clique aqui", "saiba mais", "leia mais", "veja mais", "ver mais",
+        "mais", "aqui", "link", "detalhes", "informações",
+        "continue", "confira", "acesse", "explorar", "descubra",
+        "ver tudo", "ver detalhes", "mais informações",
+        "ler mais", "saiba", "ver", "visite",
+        "click here", "read more", "learn more", "see more",
+        "more info", "more information", "view more"
         ]);
 
         const anchors = getVisibleElements('a, button');
@@ -673,7 +673,7 @@
                 allErrors.push(
                     ErrorFactory.create(
                         "check-runtime-error",
-                        `Async check "${checkName}" failed: ${result.reason && result.reason.message ? result.reason.message : String(result.reason)}`,
+                        `Async check "${checkName}" failed: ${result.reason.message}`,
                         null, "error"
                     )
                 );
@@ -708,69 +708,5 @@
         console.log("✅ Checks completed.");
     };
 
-    // Mensagens vindas do extension runtime (popup / background)
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        try {
-            if (!message || !message.type) {
-                sendResponse({ success: false, error: 'INVALID_MESSAGE' });
-                return;
-            }
-
-            if (message.type === 'HIGHLIGHT_ELEMENT') {
-                // Aceita tanto selector quanto elementos diretamente
-                if (message.selector) {
-                    let nodes = [];
-                    try {
-                        nodes = document.querySelectorAll(message.selector);
-                    } catch (e) {
-                        sendResponse({ success: false, error: 'INVALID_SELECTOR' });
-                        return;
-                    }
-                    const count = nodes.length;
-                    if (count > 0) {
-                        highlightElement(nodes, message.severity || 'error', message.code || 'A11Y');
-                    }
-                    sendResponse({ success: count > 0, count });
-                    return;
-                } else if (message.elementSelectorList && Array.isArray(message.elementSelectorList)) {
-                    // opção para receber lista de seletores
-                    const found = [];
-                    for (const sel of message.elementSelectorList) {
-                        try {
-                            const n = document.querySelectorAll(sel);
-                            n.forEach(el => found.push(el));
-                        } catch(e) {}
-                    }
-                    highlightElement(found, message.severity || 'error', message.code || 'A11Y');
-                    sendResponse({ success: found.length > 0, count: found.length });
-                    return;
-                } else {
-                    sendResponse({ success: false, error: 'NO_SELECTOR_PROVIDED' });
-                    return;
-                }
-            }
-
-            if (message.type === 'RUN_CHECKS') {
-                // Dispara as checagens e retorna imediatamente
-                try {
-                    window.runAccessibilityChecks();
-                    sendResponse({ success: true });
-                } catch (e) {
-                    sendResponse({ success: false, error: e && e.message ? e.message : String(e) });
-                }
-                return;
-            }
-
-            // outros tipos podem ser adicionados
-            sendResponse({ success: false, error: 'UNKNOWN_MESSAGE_TYPE' });
-        } catch (e) {
-            sendResponse({ success: false, error: 'HANDLER_ERROR' });
-        }
-
-        // se quiser manter o canal para uma resposta assíncrona, retornar true;
-        return true;
-    });
-
-    // Executa a checagem imediatamente na injeção
     window.runAccessibilityChecks();
 })();

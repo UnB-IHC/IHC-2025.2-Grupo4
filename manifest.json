@@ -1,35 +1,31 @@
 {
-    "name": "Detector de acessibilidade",
     "manifest_version": 3,
-    "version": "0.1.0",
-    "description": "Uma ferramenta para verificar se uma página possui acessbilidade.",
-
+    "name": "VerificaAAA",
+    "version": "1.0.0",
+    "description": "Detector de acessibilidade - VerificaAAA",
     "permissions": [
-        "storage",
-        "activeTab",
-        "scripting"
+      "activeTab",
+      "scripting"
     ],
     "icons": {
-        "16": "assets/icons/verificaaa-16.png",
-        "32": "assets/icons/verificaaa-32.png",
-        "48": "assets/icons/verificaaa-48.png",
-        "128": "assets/icons/verificaaa-128.png"
+      "16": "assets/icons/verificaaa-16.png",
+      "32": "assets/icons/verificaaa-32.png",
+      "48": "assets/icons/verificaaa-48.png",
+      "128": "assets/icons/verificaaa-128.png"
     },
     "background": {
-        "service_worker": "background.js"
+      "service_worker": "background.js"
     },
-
     "action": {
-        "default_popup": "index.html",
-        "default_title": "Detector de acessibilidade",
-        "default_icon": {
-            "16": "assets/icons/verificaaa-16.png",
-            "32": "assets/icons/verificaaa-32.png"
-        }
+      "default_popup": "index.html",
+      "default_title": "Detector de acessibilidade",
+      "default_icon": {
+        "16": "assets/icons/verificaaa-16.png",
+        "32": "assets/icons/verificaaa-32.png"
+      }
     },
-
     "options_ui": {
-        "page": "options.html",
-        "open_in_tab": true
+      "page": "options.html",
+      "open_in_tab": true
     }
-}
+  }

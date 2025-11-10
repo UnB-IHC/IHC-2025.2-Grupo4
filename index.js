@@ -1,23 +1,3 @@
-/* global MockData */
-const selectors = {
-    root: document.querySelector('.popup'),
-    analyzeButton: document.getElementById('analyze-button'),
-    statusCard: document.querySelector('.status-card'),
-    statusTitle: document.getElementById('status-title'),
-    statusSubtitle: document.getElementById('status-subtitle'),
-    lastRun: document.getElementById('last-run'),
-    summaryErrors: document.getElementById('summary-errors'),
-    summaryAlerts: document.getElementById('summary-alerts'),
-    summaryCriteria: document.getElementById('summary-criteria'),
-    findingsContainer: document.getElementById('findings-list'),
-    openReport: document.getElementById('open-report'),
-    checklistSelect: document.getElementById('checklist-select'),
-    toast: document.getElementById('toast'),
-    categoryFilter: document.getElementById('category-filter'),
-    searchInput: document.getElementById('search-input'),
-    historyList: document.getElementById('history-list')
-};
-
 const summaryTargets = [selectors.summaryErrors, selectors.summaryAlerts, selectors.summaryCriteria];
 
 const appState = {
