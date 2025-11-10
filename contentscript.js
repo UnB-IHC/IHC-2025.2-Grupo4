@@ -9,9 +9,209 @@
     console.log("✅ Acessibility checker script loaded.");
 
     class ErrorFactory {
-        static create(code, message, element = null, severity = "error") {
-            return { code, message, element, severity };
+        static create(code, message, element = null, severity = "error", extras = {}) {
+            return { code, message, element, severity, ...extras };
         }
+    }
+
+    const REFERENCE_LINKS = {
+        WCAG_111: {
+            label: 'WCAG 1.1.1 · Conteúdo não textual',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html'
+        },
+        WCAG_131: {
+            label: 'WCAG 1.3.1 · Informação e relacionamentos',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html'
+        },
+        WCAG_141: {
+            label: 'WCAG 1.4.1 · Uso de cor',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html'
+        },
+        WCAG_143: {
+            label: 'WCAG 1.4.3 · Contraste (mínimo)',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html'
+        },
+        WCAG_241: {
+            label: 'WCAG 2.4.1 · Ignorar blocos',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/bypass-blocks.html'
+        },
+        WCAG_244: {
+            label: 'WCAG 2.4.4 · Propósito do link (em contexto)',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html'
+        },
+        WCAG_247: {
+            label: 'WCAG 2.4.7 · Foco visível',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html'
+        },
+        WCAG_311: {
+            label: 'WCAG 3.1.1 · Idioma da página',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/language-of-page.html'
+        },
+        WCAG_332: {
+            label: 'WCAG 3.3.2 · Rótulos ou instruções',
+            href: 'https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions.html'
+        },
+        WCAG_412: {
+            label: 'WCAG 4.1.2 · Nome, função, valor',
+            href: 'https://www.w3.org/WAI/WCAG21/Understanding/name-role-value.html'
+        }
+    };
+
+    const ISSUE_METADATA = {
+        'missing-lang': {
+            title: 'Defina o atributo lang no <html>',
+            category: 'Estrutura semântica',
+            recommendation: 'Configure o idioma principal do documento usando lang="pt-BR" ou equivalente.',
+            references: [REFERENCE_LINKS.WCAG_311]
+        },
+        'iframe-missing-title': {
+            title: 'Iframe sem atributo title',
+            category: 'Conteúdo incorporado',
+            recommendation: 'Descreva o propósito de cada <iframe> no atributo title.',
+            references: [REFERENCE_LINKS.WCAG_412]
+        },
+        'iframe-empty-title': {
+            title: 'Iframe com título vazio',
+            category: 'Conteúdo incorporado',
+            recommendation: 'Preencha o atributo title com um texto que descreva o conteúdo embutido.',
+            references: [REFERENCE_LINKS.WCAG_412]
+        },
+        'no-headings': {
+            title: 'Nenhum heading encontrado',
+            category: 'Estrutura semântica',
+            recommendation: 'Utilize elementos <h1>-<h6> para organizar o conteúdo.',
+            references: [REFERENCE_LINKS.WCAG_131]
+        },
+        'multiple-h1-instance': {
+            title: 'Múltiplos elementos <h1>',
+            category: 'Estrutura semântica',
+            recommendation: 'Restrinja o uso de <h1> a um título principal por página.',
+            references: [REFERENCE_LINKS.WCAG_131]
+        },
+        'invalid-heading-hierarchy': {
+            title: 'Hierarquia de headings quebrada',
+            category: 'Estrutura semântica',
+            recommendation: 'Não salte níveis — avance de <h2> para <h3>, e assim por diante.',
+            references: [REFERENCE_LINKS.WCAG_131]
+        },
+        'img-missing-alt': {
+            title: 'Imagem sem texto alternativo',
+            category: 'Imagens e mídia',
+            recommendation: 'Forneça um atributo alt descrevendo a finalidade da imagem.',
+            references: [REFERENCE_LINKS.WCAG_111]
+        },
+        'img-empty-alt': {
+            title: 'Imagem com alt vazio',
+            category: 'Imagens e mídia',
+            recommendation: 'Substitua alt="" por um texto que represente o conteúdo mostrado.',
+            references: [REFERENCE_LINKS.WCAG_111]
+        },
+        'form-field-missing-label': {
+            title: 'Campo de formulário sem rótulo',
+            category: 'Formulários',
+            recommendation: 'Associe o campo a um <label> ou utilize aria-label/aria-labelledby.',
+            references: [REFERENCE_LINKS.WCAG_332]
+        },
+        'component-empty-text': {
+            title: 'Componente sem nome acessível',
+            category: 'Componentes interativos',
+            recommendation: 'Garanta que links e botões possuam texto visível ou aria-label descritivo.',
+            references: [REFERENCE_LINKS.WCAG_244]
+        },
+        'component-nondescriptive-text': {
+            title: 'Texto pouco descritivo',
+            category: 'Componentes interativos',
+            recommendation: 'Prefira rótulos que descrevam a ação em vez de “clique aqui”.',
+            references: [REFERENCE_LINKS.WCAG_244]
+        },
+        'no-landmarks': {
+            title: 'Nenhuma landmark encontrada',
+            category: 'Navegação e landmarks',
+            recommendation: 'Utilize regiões como <header>, <main>, <nav> e <footer> para organizar a página.',
+            references: [REFERENCE_LINKS.WCAG_241]
+        },
+        'no-main-landmark': {
+            title: 'Elemento <main> ausente',
+            category: 'Navegação e landmarks',
+            recommendation: 'Inclua um único <main> para indicar o conteúdo principal.',
+            references: [REFERENCE_LINKS.WCAG_241]
+        },
+        'multiple-main-landmarks': {
+            title: 'Múltiplos elementos <main>',
+            category: 'Navegação e landmarks',
+            recommendation: 'Restrinja-se a um <main>; use seções se precisar de múltiplos blocos.',
+            references: [REFERENCE_LINKS.WCAG_241]
+        },
+        'html-validator-error': {
+            title: 'Falha geral na validação HTML',
+            category: 'Semântica HTML',
+            recommendation: 'Revise a marcação conforme as orientações do validador do W3C.',
+            references: [REFERENCE_LINKS.WCAG_131]
+        },
+        'markup-validation-failed': {
+            title: 'Não foi possível validar a marcação',
+            category: 'Semântica HTML',
+            recommendation: 'Verifique se há bloqueios de rede ou tente novamente mais tarde.',
+            references: [REFERENCE_LINKS.WCAG_131]
+        },
+        'color-contrast': {
+            title: 'Contraste insuficiente',
+            category: 'Design visual',
+            recommendation: 'Ajuste cores ou peso tipográfico até atingir contraste mínimo de 4.5:1.',
+            references: [REFERENCE_LINKS.WCAG_143]
+        },
+        'axe-not-loaded': {
+            title: 'Biblioteca axe indisponível',
+            category: 'Ferramentas de análise',
+            recommendation: 'Garanta que o script do axe esteja acessível antes de rodar as verificações.'
+        },
+        'check-runtime-error': {
+            title: 'Erro na execução da checagem',
+            category: 'Execução da análise',
+            recommendation: 'Consulte o console para mais detalhes e tente rodar novamente.'
+        }
+    };
+
+    const ISSUE_METADATA_FALLBACKS = [
+        {
+            test: (code) => code?.startsWith('html-semantics'),
+            data: {
+                title: 'Inconsistência de semântica HTML',
+                category: 'Semântica HTML',
+                recommendation: 'Ajuste a marcação conforme a mensagem retornada pelo validador.',
+                references: [REFERENCE_LINKS.WCAG_131]
+            }
+        }
+    ];
+
+    function getIssueMetadata(code) {
+        if (code === null || code === undefined) return {};
+        const normalizedCode = String(code);
+        if (ISSUE_METADATA[normalizedCode]) {
+            return ISSUE_METADATA[normalizedCode];
+        }
+
+        for (const fallback of ISSUE_METADATA_FALLBACKS) {
+            if (fallback.test(normalizedCode)) {
+                return fallback.data;
+            }
+        }
+
+        if (normalizedCode.startsWith('img-')) {
+            return {
+                title: 'Imagem com possível problema de texto alternativo',
+                category: 'Imagens e mídia'
+            };
+        }
+
+        if (normalizedCode.startsWith('component-')) {
+            return {
+                title: 'Componente com nome pouco descritivo',
+                category: 'Componentes interativos'
+            };
+        }
+
+        return {};
     }
 
     (function injectBadgeStyles() {
@@ -101,7 +301,15 @@
             for (const violation of results.violations) {
                 for (const node of violation.nodes) {
                     const severity = mapAxeImpactToSeverity(node.impact);
-                    const element = document.querySelector(node.target);
+                    const targetSelector = Array.isArray(node.target) ? node.target[0] : node.target;
+                    let element = null;
+                    if (typeof targetSelector === 'string') {
+                        try {
+                            element = document.querySelector(targetSelector);
+                        } catch (e) {
+                            element = null;
+                        }
+                    }
                     const message = `[Axe] ${violation.help}.`;
 
                     errors.push(
@@ -536,6 +744,48 @@
         return 'a11y-' + Math.random().toString(36).slice(2,9);
     }
 
+    function getElementSelector(el) {
+        if (!(el instanceof Element)) return null;
+        if (el.id) return `#${el.id}`;
+
+        const parts = [];
+        let current = el;
+        let depth = 0;
+
+        while (current && depth < 5) {
+            if (!(current instanceof Element)) break;
+            let part = current.tagName ? current.tagName.toLowerCase() : '';
+            if (!part) break;
+
+            if (current.classList?.length) {
+                const classSegment = Array.from(current.classList)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(cls => cls.trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, ''))
+                    .filter(Boolean)
+                    .join('.');
+                if (classSegment) {
+                    part += `.${classSegment}`;
+                }
+            }
+
+            const parent = current.parentElement;
+            if (parent) {
+                const siblings = Array.from(parent.children).filter(child => child.tagName === current.tagName);
+                if (siblings.length > 1) {
+                    const index = siblings.indexOf(current);
+                    part += `:nth-of-type(${index + 1})`;
+                }
+            }
+
+            parts.unshift(part);
+            current = current.parentElement;
+            depth += 1;
+        }
+
+        return parts.join(' > ');
+    }
+
     function highlightElement(elOrList, severity, code) {
         if (!window.__a11yHighlightEnabled__) return;
         if (!elOrList) return;
@@ -608,6 +858,45 @@
                 console.warn('highlightElement error', e);
             }
         });
+    }
+
+    function normalizeSeverity(severity) {
+        if (severity === 'warning') return 'alert';
+        if (severity === 'info') return 'info';
+        return 'error';
+    }
+
+    function buildSerializableReport(errors) {
+        const findings = errors.map((err, index) => {
+            const severity = normalizeSeverity(err?.severity);
+            const selectorFromSource = err?.selector ?? (err?.element ? getElementSelector(err.element) : null);
+            const metadata = getIssueMetadata(err?.code);
+            const description = err?.message ?? metadata.description ?? '';
+            return {
+                id: `${err?.code || 'issue'}-${index}`,
+                code: err?.code ?? null,
+                title: metadata.title ?? err?.code ?? 'Achado de acessibilidade',
+                severity,
+                description,
+                selector: selectorFromSource,
+                message: err?.message ?? '',
+                recommendation: metadata.recommendation ?? null,
+                category: metadata.category ?? null,
+                references: Array.isArray(metadata.references) ? metadata.references : []
+            };
+        });
+
+        const stats = {
+            errors: findings.filter(item => item.severity === 'error').length,
+            alerts: findings.filter(item => item.severity === 'alert').length,
+            info: findings.filter(item => item.severity === 'info').length
+        };
+
+        return {
+            generatedAt: new Date().toISOString(),
+            stats,
+            findings
+        };
     }
 
     // ============================================================
@@ -702,74 +991,80 @@
         }
         console.groupEnd();
 
+        const report = buildSerializableReport(allErrors);
+
         if (typeof chrome !== 'undefined' && chrome.runtime) {
-            chrome.runtime.sendMessage({ type: "DONE", allErrors: allErrors });
+            try {
+                chrome.runtime.sendMessage({ type: "CHECKS_RESULT", report });
+            } catch (e) {
+                console.warn('Failed to dispatch CHECKS_RESULT message', e);
+            }
         }
         console.log("✅ Checks completed.");
+
+        return report;
     };
 
     // Mensagens vindas do extension runtime (popup / background)
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        try {
-            if (!message || !message.type) {
-                sendResponse({ success: false, error: 'INVALID_MESSAGE' });
-                return;
-            }
+    if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage && typeof chrome.runtime.onMessage.addListener === "function") {
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            try {
+                if (!message || !message.type) {
+                    sendResponse({ success: false, error: "INVALID_MESSAGE" });
+                    return;
+                }
 
-            if (message.type === 'HIGHLIGHT_ELEMENT') {
-                // Aceita tanto selector quanto elementos diretamente
-                if (message.selector) {
-                    let nodes = [];
-                    try {
-                        nodes = document.querySelectorAll(message.selector);
-                    } catch (e) {
-                        sendResponse({ success: false, error: 'INVALID_SELECTOR' });
+                if (message.type === "HIGHLIGHT_ELEMENT") {
+                    if (message.selector) {
+                        let nodes = [];
+                        try {
+                            nodes = document.querySelectorAll(message.selector);
+                        } catch (e) {
+                            sendResponse({ success: false, error: "INVALID_SELECTOR" });
+                            return;
+                        }
+                        const count = nodes.length;
+                        if (count > 0) {
+                            highlightElement(nodes, message.severity || "error", message.code || "A11Y");
+                        }
+                        sendResponse({ success: count > 0, count });
+                        return;
+                    } else if (message.elementSelectorList && Array.isArray(message.elementSelectorList)) {
+                        const found = [];
+                        for (const sel of message.elementSelectorList) {
+                            try {
+                                const n = document.querySelectorAll(sel);
+                                n.forEach(el => found.push(el));
+                            } catch (e) {}
+                        }
+                        highlightElement(found, message.severity || "error", message.code || "A11Y");
+                        sendResponse({ success: found.length > 0, count: found.length });
+                        return;
+                    } else {
+                        sendResponse({ success: false, error: "NO_SELECTOR_PROVIDED" });
                         return;
                     }
-                    const count = nodes.length;
-                    if (count > 0) {
-                        highlightElement(nodes, message.severity || 'error', message.code || 'A11Y');
-                    }
-                    sendResponse({ success: count > 0, count });
-                    return;
-                } else if (message.elementSelectorList && Array.isArray(message.elementSelectorList)) {
-                    // opção para receber lista de seletores
-                    const found = [];
-                    for (const sel of message.elementSelectorList) {
-                        try {
-                            const n = document.querySelectorAll(sel);
-                            n.forEach(el => found.push(el));
-                        } catch(e) {}
-                    }
-                    highlightElement(found, message.severity || 'error', message.code || 'A11Y');
-                    sendResponse({ success: found.length > 0, count: found.length });
-                    return;
-                } else {
-                    sendResponse({ success: false, error: 'NO_SELECTOR_PROVIDED' });
-                    return;
                 }
+
+                if (message.type === "RUN_CHECKS") {
+                    window
+                        .runAccessibilityChecks()
+                        .then(report => sendResponse({ success: true, report }))
+                        .catch(err => sendResponse({
+                            success: false,
+                            error: err && err.message ? err.message : String(err)
+                        }));
+                    return true;
+                }
+
+                sendResponse({ success: false, error: "UNKNOWN_MESSAGE_TYPE" });
+            } catch (e) {
+                sendResponse({ success: false, error: "HANDLER_ERROR" });
             }
 
-            if (message.type === 'RUN_CHECKS') {
-                // Dispara as checagens e retorna imediatamente
-                try {
-                    window.runAccessibilityChecks();
-                    sendResponse({ success: true });
-                } catch (e) {
-                    sendResponse({ success: false, error: e && e.message ? e.message : String(e) });
-                }
-                return;
-            }
-
-            // outros tipos podem ser adicionados
-            sendResponse({ success: false, error: 'UNKNOWN_MESSAGE_TYPE' });
-        } catch (e) {
-            sendResponse({ success: false, error: 'HANDLER_ERROR' });
-        }
-
-        // se quiser manter o canal para uma resposta assíncrona, retornar true;
-        return true;
-    });
+            return false;
+        });
+    }
 
     // Executa a checagem imediatamente na injeção
     window.runAccessibilityChecks();

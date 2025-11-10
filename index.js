@@ -1,3 +1,21 @@
+const selectors = {
+    analyzeButton: document.getElementById('analyze-button'),
+    statusCard: document.querySelector('.status-card'),
+    statusTitle: document.getElementById('status-title'),
+    statusSubtitle: document.getElementById('status-subtitle'),
+    lastRun: document.getElementById('last-run'),
+    summaryErrors: document.getElementById('summary-errors'),
+    summaryAlerts: document.getElementById('summary-alerts'),
+    summaryCriteria: document.getElementById('summary-criteria'),
+    findingsContainer: document.getElementById('findings-list'),
+    categoryFilter: document.getElementById('category-filter'),
+    searchInput: document.getElementById('search-input'),
+    checklistSelect: document.getElementById('checklist-select'),
+    openReport: document.getElementById('open-report'),
+    historyList: document.getElementById('history-list'),
+    toast: document.getElementById('toast')
+};
+
 const summaryTargets = [selectors.summaryErrors, selectors.summaryAlerts, selectors.summaryCriteria];
 
 const appState = {
@@ -165,21 +183,28 @@ function renderFindings(report) {
 
         const actions = document.createElement('div');
         actions.className = 'actions';
+        let hasAction = false;
 
-        const highlightButton = document.createElement('button');
-        highlightButton.type = 'button';
-        highlightButton.textContent = 'Destacar no DOM';
-        highlightButton.ariaLabel = `Destacar ${item.selector || 'elemento'}`;
+        if (item.selector) {
+            const highlightButton = document.createElement('button');
+            highlightButton.type = 'button';
+            highlightButton.textContent = 'Destacar no DOM';
+            highlightButton.ariaLabel = `Destacar ${item.selector}`;
+            attachActionListeners(highlightButton, () => highlightElement(item.selector));
+            actions.appendChild(highlightButton);
+            hasAction = true;
+        }
 
-        const referenceButton = document.createElement('button');
-        referenceButton.type = 'button';
-        referenceButton.textContent = 'Ver referência';
-
-        attachActionListeners(highlightButton, () => highlightElement(item.selector));
-        attachActionListeners(referenceButton, () => openReference(item.references?.[0]));
-
-        actions.appendChild(highlightButton);
-        actions.appendChild(referenceButton);
+        const primaryReference = item.references?.find((ref) => ref?.href);
+        if (primaryReference) {
+            const referenceButton = document.createElement('button');
+            referenceButton.type = 'button';
+            referenceButton.textContent = 'Ver referência';
+            referenceButton.ariaLabel = `Abrir referência ${primaryReference.label}`;
+            attachActionListeners(referenceButton, () => openReference(primaryReference));
+            actions.appendChild(referenceButton);
+            hasAction = true;
+        }
 
         details.append(summary, description, meta);
         if (item.category) details.appendChild(category);
@@ -192,7 +217,14 @@ function renderFindings(report) {
             details.appendChild(refs);
         }
 
-        details.appendChild(actions);
+        if (hasAction) {
+            details.appendChild(actions);
+        } else {
+            const actionNote = document.createElement('p');
+            actionNote.className = 'meta';
+            actionNote.textContent = 'Sem ações adicionais para este achado.';
+            details.appendChild(actionNote);
+        }
         fragment.appendChild(details);
     });
 
@@ -321,44 +353,134 @@ function persistReport(report) {
     });
 }
 
-function simulateAnalysis(checklistId) {
-    return new Promise((resolve) => {
-        window.setTimeout(() => {
-            const report = MockData.buildReport(checklistId);
-            resolve(report);
-        }, 1400);
+function buildReportFromRuntime(runtimeReport = {}) {
+    const checklist = MockData.CHECKLISTS[appState.checklist] ?? {
+        id: appState.checklist,
+        label: appState.checklist,
+        totalCriteria: 0
+    };
+
+    const sourceFindings = Array.isArray(runtimeReport.findings) ? runtimeReport.findings : [];
+
+    const findings = sourceFindings.map((item, index) => {
+        const severity = item?.severity === 'alert'
+            ? 'alert'
+            : item?.severity === 'info'
+                ? 'info'
+                : 'error';
+
+        return {
+            id: item?.id ?? `${item?.code || 'finding'}-${index}`,
+            title: item?.title ?? item?.code ?? 'Achado de acessibilidade',
+            severity,
+            description: item?.description ?? item?.message ?? '',
+            selector: item?.selector ?? null,
+            recommendation: item?.recommendation ?? null,
+            category: item?.category ?? null,
+            references: Array.isArray(item?.references) ? item.references : []
+        };
     });
+
+    const statsFromRuntime = runtimeReport?.stats ?? {};
+    const stats = {
+        errors: Number.isFinite(statsFromRuntime.errors) ? statsFromRuntime.errors : findings.filter((item) => item.severity === 'error').length,
+        alerts: Number.isFinite(statsFromRuntime.alerts) ? statsFromRuntime.alerts : findings.filter((item) => item.severity === 'alert').length,
+        info: Number.isFinite(statsFromRuntime.info) ? statsFromRuntime.info : findings.filter((item) => item.severity === 'info').length,
+        criteria: checklist.totalCriteria
+    };
+
+    return {
+        checklistId: checklist.id,
+        checklistLabel: checklist.label,
+        generatedAt: runtimeReport?.generatedAt ?? new Date().toISOString(),
+        stats,
+        findings
+    };
+}
+
+function handleAnalysisFailure(message) {
+    console.error('[ANALYZE] failure:', message);
+    clearSkeletonState();
+    renderReport(getActiveReport());
+    setAnalyzingState(false);
+    updateStatus({
+        title: 'Não foi possível analisar',
+        subtitle: message,
+        timestamp: appState.lastExecution,
+        state: 'idle'
+    });
+    showToast(message, 'warning');
 }
 
 function requestAnalysis() {
     if (appState.analyzing) return;
 
-    renderSkeletonState();
-    setAnalyzingState(true);
-    updateStatus({
-        title: 'Checklist em andamento…',
-        subtitle: 'Injetando scripts e analisando a estrutura da página.',
-        timestamp: appState.lastExecution,
-        state: 'progress'
-    });
-
-    chrome.runtime.sendMessage({ type: 'ANALYZE_PAGE' }, (response) => {
-        if (chrome.runtime.lastError || response?.success === false) {
-            showToast('Não foi possível injetar o script na aba atual.', 'warning');
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs?.[0]?.id;
+        if (!tabId) {
+            handleAnalysisFailure('Abra uma aba válida para executar a análise.');
+            return;
         }
-    });
 
-    simulateAnalysis(appState.checklist).then((report) => {
-        persistReport(report);
-        renderReport(report);
+        renderSkeletonState();
+        setAnalyzingState(true);
         updateStatus({
-            title: 'Checklist concluído',
-            subtitle: 'Veja os achados logo abaixo ou abra o relatório detalhado.',
-            timestamp: report.generatedAt,
-            state: 'idle'
+            title: 'Checklist em andamento…',
+            subtitle: 'Injetando scripts e analisando a estrutura da página.',
+            timestamp: appState.lastExecution,
+            state: 'progress'
         });
-        showToast('Relatório atualizado com dados simulados.', 'info');
-        setAnalyzingState(false);
+
+        console.log('[ANALYZE] solicitando injeção e análise', { tabId, checklist: appState.checklist });
+        chrome.runtime.sendMessage({ type: 'ANALYZE_PAGE', tabId }, (response) => {
+            if (chrome.runtime.lastError || response?.success === false) {
+                console.error('ANALYZE_PAGE error', chrome.runtime.lastError, response);
+                handleAnalysisFailure('Não foi possível injetar o script na aba atual.');
+                return;
+            }
+
+            if (response?.error) {
+                console.warn('[ANALYZE] background retornou com erro, utilizando fallback', response.error);
+            }
+
+            // Se o background já devolveu um report, usamos direto
+            if (response?.report) {
+                const report = buildReportFromRuntime(response.report);
+                persistReport(report);
+                renderReport(report);
+                updateStatus({
+                    title: 'Checklist concluído',
+                    subtitle: 'Veja os achados logo abaixo ou abra o relatório detalhado.',
+                    timestamp: report.generatedAt,
+                    state: 'idle'
+                });
+                showToast('Análise concluída com sucesso.', 'success');
+                setAnalyzingState(false);
+                return;
+            }
+
+            // Fallback: pedir diretamente ao content script
+            chrome.tabs.sendMessage(tabId, { type: 'RUN_CHECKS' }, (result) => {
+                if (chrome.runtime.lastError || !result?.success) {
+                    console.error('RUN_CHECKS error', chrome.runtime.lastError, result);
+                    handleAnalysisFailure('Falha ao executar a análise na página.');
+                    return;
+                }
+
+                console.log('[ANALYZE] relatório recebido via fallback', result.report);
+                const report = buildReportFromRuntime(result.report);
+                persistReport(report);
+                renderReport(report);
+                updateStatus({
+                    title: 'Checklist concluído',
+                    subtitle: 'Veja os achados logo abaixo ou abra o relatório detalhado.',
+                    timestamp: report.generatedAt,
+                    state: 'idle'
+                });
+                showToast('Análise concluída com sucesso.', 'success');
+                setAnalyzingState(false);
+            });
+        });
     });
 }
 

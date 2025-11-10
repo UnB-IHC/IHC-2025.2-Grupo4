@@ -5,7 +5,9 @@
     "description": "Detector de acessibilidade - VerificaAAA",
     "permissions": [
       "activeTab",
-      "scripting"
+      "scripting",
+      "tabs",
+      "storage"
     ],
     "icons": {
       "16": "assets/icons/verificaaa-16.png",
