@@ -1,15 +1,90 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>VerificaAAA</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h3>Meu Detector</h3>
-    <button id="analyze-button">Analisar Página</button>
+    <main class="popup" aria-live="polite">
+        <header class="popup__header">
+            <div class="brand" aria-label="VerificaAAA">
+                <span class="brand__logo" aria-hidden="true">V</span>
+                <div>
+                    <p class="brand__name">VerificaAAA</p>
+                    <p class="brand__subtitle">Auditoria rápida da aba ativa</p>
+                </div>
+            </div>
 
-    <script src="index.js"></script>
-    <script src="colorCheker.js" charset="utf-8"></script>
+            <label class="select-group">
+                <span class="sr-only">Selecione o checklist desejado</span>
+                <select id="checklist-select" name="checklist">
+                    <option value="nbr-aa">Checklist NBR 17225 (AA)</option>
+                    <option value="wcag-a">WCAG 2.2 – Nível A</option>
+                </select>
+            </label>
+        </header>
+
+        <section class="status-card" data-state="idle">
+            <p id="status-title" class="status-card__title">Pronto para analisar</p>
+            <p id="status-subtitle" class="status-card__subtitle">Clique em "Analisar página" para aplicar o checklist selecionado.</p>
+            <p class="status-card__meta">Última execução: <span id="last-run">—</span></p>
+        </section>
+
+        <button id="analyze-button" class="btn-primary" type="button">
+            Analisar página atual
+        </button>
+
+        <section class="summary" aria-label="Resumo dos resultados">
+            <article class="chip chip--error">
+                <strong id="summary-errors">0</strong>
+                <span>Erros</span>
+            </article>
+            <article class="chip chip--alert">
+                <strong id="summary-alerts">0</strong>
+                <span>Alertas</span>
+            </article>
+            <article class="chip chip--info">
+                <strong id="summary-criteria">0</strong>
+                <span>Critérios</span>
+            </article>
+        </section>
+
+        <section class="filters" aria-label="Filtros de achados">
+            <label class="filters__field">
+                <span>Categoria</span>
+                <select id="category-filter">
+                    <option value="all">Todas</option>
+                </select>
+            </label>
+            <label class="filters__field">
+                <span>Busca</span>
+                <input id="search-input" type="search" placeholder="Selecione por critério ou seletor" />
+            </label>
+        </section>
+
+        <section class="findings" aria-label="Lista de achados">
+            <h2>Achados recentes</h2>
+            <div id="findings-list" class="findings__list" role="list">
+                <p class="empty-state">Execute uma análise para listar os achados.</p>
+            </div>
+        </section>
+
+        <section class="history" aria-label="Histórico de execuções">
+            <h2>Histórico recente</h2>
+            <ul id="history-list" class="history__list">
+                <li class="history__item">Nenhuma execução registrada ainda.</li>
+            </ul>
+        </section>
+
+        <button id="open-report" class="link-button" type="button">
+            Ver relatório detalhado
+        </button>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="mock-data.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>

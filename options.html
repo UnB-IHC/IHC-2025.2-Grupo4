@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório VerificaAAA</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="layout">
+        <aside>
+            <div class="logo">
+                <span class="logo__badge" aria-hidden="true">V</span>
+                <div>
+                    <p class="logo__title">VerificaAAA</p>
+                    <p class="logo__subtitle">Extensão de auditoria</p>
+                </div>
+            </div>
+            <nav aria-label="Categorias do checklist">
+                <button class="active" type="button">Resumo geral</button>
+                <button type="button">Estrutura & Semântica</button>
+                <button type="button">Navegação & Foco</button>
+                <button type="button">Formulários</button>
+                <button type="button">Mídia & Conteúdo</button>
+                <button type="button">Design visual</button>
+            </nav>
+        </aside>
+
+        <main>
+            <section class="filters" aria-label="Filtros do relatório">
+                <label>
+                    <span>Checklist</span>
+                    <select id="options-checklist" name="checklist">
+                        <option value="nbr-aa">Checklist NBR 17225 (AA)</option>
+                        <option value="wcag-a">WCAG 2.2 – Nível A</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Prioridade</span>
+                    <select id="options-severity" name="severity">
+                        <option value="all">Mostrar: todos os resultados</option>
+                        <option value="error">Apenas erros</option>
+                        <option value="alert">Apenas alertas</option>
+                        <option value="info">Apenas informativos</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Busca</span>
+                    <input id="options-search" type="search" placeholder="Filtrar por critério ou seletor" />
+                </label>
+                <button id="export-report" class="primary" type="button">Exportar relatório</button>
+            </section>
+
+            <section class="callout" aria-live="polite">
+                <strong id="callout-criteria">—</strong>
+                <span id="callout-meta">Aguarde, carregando dados simulados…</span>
+            </section>
+
+            <section class="history-panel" aria-label="Histórico de execuções">
+                <h3>Histórico recente</h3>
+                <ul id="options-history" class="history-panel__list">
+                    <li>Sem execuções registradas.</li>
+                </ul>
+            </section>
+
+            <section>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Critério</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Referência</th>
+                            <th scope="col">Evidência / Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-body">
+                        <tr>
+                            <td colspan="4">Carregando resultado…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script src="mock-data.js"></script>
+    <script src="options.js" defer></script>
+</body>
+</html>
