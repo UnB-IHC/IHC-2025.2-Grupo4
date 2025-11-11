@@ -1,7 +1,7 @@
 # AccessScan
 
 <div align="center">
-<img src="docs/imagens/logo.png" alt="Logo" style="width: 100px">
+<img src="logo.png" alt="Logo" style="width: 100px">
 </div>
 
 
