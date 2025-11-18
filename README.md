@@ -9,6 +9,10 @@
 
 Este repositório tem como propósito fornecer um checklist prático de acessibilidade para projetos, principalmente de desenvolvimento de software, que incluem: desenvolvimento web, design, geração de conteúdo e gestão de projetos. 
 
+## Como Rodar o Projeto
+
+Você pode encontrar as instruções de como rodar o projeto [neste documento](https://docs.google.com/document/d/18md26MztkbZwe0eoiwOdHFfZ35pY_XuxcMcxsafn6Sk/edit?tab=t.0#heading=h.b0bgkcn7r17d).
+
 ## AccessScan
 
 O AccessScan é nome do projeto criado a partir do curso de Interação Humano Computador, ministrado pela docente Rejane Maria da Costa Figueiredo, na Universidade de Brasília (UnB). 
